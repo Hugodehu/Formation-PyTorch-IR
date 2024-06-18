@@ -3,9 +3,9 @@ from function.visualize_prediction_image import visualize_prediction
 
 def convert_coco_to_targets(coco_labels, device):
     targets = []
-    category_id = []
     for lables in coco_labels:
         boxes = []
+        category_id = []
         for lbl in lables:
             xmin, ymin, width, height = lbl['bbox']
             boxes.append([xmin, ymin, xmin + width, ymin + height])  # Extract bounding box coordinates [x_min, y_min, width, height]
@@ -26,7 +26,7 @@ def getPredictionModel(model, dataloader, device):
             if(labels[0].__class__ == list):
                 targets = convert_coco_to_targets(labels, device)
             else:
-                targets = [{'boxes': lbl.to(device), 'labels': torch.ones(lbl.size(0), dtype=torch.int64).to(device)} for lbl in labels]
+                targets = [{'boxes': lbl["boxes"].to(device), 'labels': lbl["labels"].to(device)} for lbl in labels]
             outputs = model(images)
             prediction.append(outputs)
             targetsOut.append(targets)

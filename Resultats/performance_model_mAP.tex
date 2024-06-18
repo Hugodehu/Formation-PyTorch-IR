@@ -1,0 +1,37 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\begin{document}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|c|c|c|c|} 
+\hline
+Model & \multicolumn{3}{|c||}{BDD100K} & \multicolumn{3}{|c|}{COCO} \\ 
+ & precision & recall & mAP  & precision & recall & mAP  \\ [0.5ex] 
+\hline
+Faster R-CNN & 0.6900 & 0.5331 &14.2811 & 0.5881 & 0.7857 & 53.3767 \\ 
+\hline
+RetinaNet & 0.9028 & 0.3176 & 10.9700 & 0.8415 & 0.5504 & 54.7104 \\ 
+\hline
+FCOS & 0.8225 & 0.3962 & 12.5330 & 0.6908 & 0.6541 & 45.4001 \\ 
+\hline
+Faster R-CNN, RetinaNet Cat & 0.6615 & 0.5348 & 10.8924 & 0.5479 & 0.7927 & 48.0539 \\ 
+\hline
+Faster R-CNN, RetinaNet NMS & 0.6797 & 0.5336 & 10.5462 & 0.5840 & 0.7885 & 46.2454 \\ 
+\hline
+Faster R-CNN, FCOS Cat & 0.6270 & 0.5462 & 11.5580 & 0.4898 & 0.8095 & 47.4916 \\ 
+\hline
+Faster R-CNN, FCOS NMS & 0.6588 & 0.5405 & 10.9920 & 0.5564 & 0.8081 & 46.7206 \\ 
+\hline
+RetinaNet, FCOS Cat & 0.7742 & 0.4105 & 8.7381 & 0.6310 & 0.6779 & 41.1140 \\ 
+\hline
+RetinaNet, FCOS NMS & 0.8100 & 0.4082 & 9.5651 & 0.6814 & 0.6709 & 42.1277 \\ 
+\hline
+Faster R-CNN, RetinaNet, FCOS Cat & 0.6187 & 0.5468 & 11.2171 & 0.4861 & 0.8081 & 47.2838 \\ 
+\hline
+Faster R-CNN, RetinaNet, FCOS NMS & 0.6522 & 0.5410 & 10.9920 & 0.5516 & 0.8081 & 46.7206 \\ 
+\hline
+\end{tabular}
+\caption{R�sultats des diff�rents mod�les en fonction de la base de test.}
+\label{table:data}
+\end{table}
+\end{document}

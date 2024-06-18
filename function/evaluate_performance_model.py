@@ -1,6 +1,6 @@
 import torch
 from function.compute_iou import compute_iou
-from function.mAP import mean_average_precision
+from torchmetrics.detection import MeanAveragePrecision
 
 def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, threshold=0.5):
     """
@@ -22,10 +22,6 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
     Target_num_boxes = 0
     num_boxes = 0
     
-    precisions = []
-    recalls = []
-    precisionsTest = []
-    recallsTest = []
 
     with torch.no_grad():
         for outputs, targets in zip(prediction, targetsOut):
@@ -71,24 +67,19 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
                         false_positives_total += 1
                         false_positives += 1
 
-                # # Calculate precision and recall for this image
-                # precision = true_positives / (true_positives + false_positives)
-                # recall = true_positives / (true_positives + false_negatives)
-                # precisions.append(precision)
-                # recalls.append(recall)
+            metric = MeanAveragePrecision(iou_type="bbox")
+            metric.update(outputs, targets)
+            metric.compute()
 
-                # precision = true_positives_total / (true_positives_total + false_positives_total) 
-                # recall = true_positives_total / (true_positives_total + false_negatives_total) 
-                # precisionsTest.append(precision)
-                # recallsTest.append(recall)
-            # mAP, AP =  mean_average_precision(outputs, targets)
-            # print(f"mAP: {mAP:.4f}, AP: {AP}")
+    
 
-                
+    mAP = metric.compute()   
+    map = mAP['map'].item()*100         
     precision = true_positives_total / (true_positives_total + false_positives_total) # représente la proportion de prédictions correctes parmi les prédictions positives
     recall = true_positives_total / (true_positives_total + false_negatives_total) # représente la proportion de prédictions correctes parmi les vrais positifs
     
     print(f"Nombre de boîtes de l'image optimal: {Target_num_boxes}")
     print(f"Nombre de boîtes de l'image prédit: {num_boxes}")
-    print(f"Precision: {precision:.4f}, Recall: {recall:.4f}\n")
-    return precision, recall, Target_num_boxes, num_boxes
+    print(f"Precision: {precision:.4f}, Recall: {recall:.4f}")
+    print(f"mAP: {map: .4f}\n")
+    return precision, recall, Target_num_boxes, num_boxes, map
