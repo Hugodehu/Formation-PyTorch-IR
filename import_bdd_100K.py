@@ -5,8 +5,10 @@ from torchvision.transforms import ToTensor
 from function.evaluate_performance_model import evaluate_performance_model
 from function.get_prediction_model import getPredictionModel
 from classes.custom_dataset_bdd100k import CustomDataset, collate_fn_for_bdd100K, collate_fn_for_coco
-from function.merge_predictions import merge_predictions_with_nms, merge_predictions_without_nms
-from function.visualize_prediction_image import plot_precision_recall_curve
+from function.merge_prediction.merge_predictions_with_nms import merge_predictions_with_nms 
+from function.merge_prediction.merge_predictions_without_nms import merge_predictions_without_nms
+from function.merge_prediction.merge_predictions_with_wbf import merge_predictions_with_wbf
+from function.visualize_prediction_image import plot_precision_recall_curve, visualize_prediction
 
 # Usage
 img_dir_bdd100K = 'data/bdd100K/bdd100K/images/100K/val'
@@ -25,11 +27,11 @@ BDD100Ksubset_dataset = Subset(BDD100K_dataset, subset_indices)
 batch_size = 4 # 4 images per batch
 
 # Create data loaders.
-BDD100K_dataloader = DataLoader(BDD100K_dataset, batch_size=batch_size, collate_fn=collate_fn_for_bdd100K)
+BDD100K_dataloader = DataLoader(BDD100Ksubset_dataset, batch_size=batch_size, collate_fn=collate_fn_for_bdd100K)
 
 COCOsubset_dataset = Subset(COCO_dataset, subset_indices)
 
-Coco_dataloader = DataLoader(COCO_dataset, batch_size=batch_size, collate_fn=collate_fn_for_coco)
+Coco_dataloader = DataLoader(COCOsubset_dataset, batch_size=batch_size, collate_fn=collate_fn_for_coco)
 
 # récupération du cpu ou gpu pour l'évaluation.
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else"cpu"
@@ -72,6 +74,16 @@ print("Evaluation du modèle RetinaNetModel sans modification")
 predictionRetinaNet, targetsOutRetinaNet = getPredictionModel(RetinaNetModel, BDD100K_dataloader, device)
 RetinaNetModelBdd100KPrecision, RetinaNetModelBdd100KRecall, RetinaNetModelBdd100KTargetBoxes, RetinaNetModelBdd100KPredBoxs, RetinaNetModelBdd100KMap = evaluate_performance_model(predictionRetinaNet, targetsOutRetinaNet)
 
+
+# with torch.no_grad():
+#         count = 0
+#         for images, labels in BDD100K_dataloader:
+#             images = [img.to(device) for img in images]
+#             visualize_prediction(images, targetsOutFasterRCNN[count], merge_predictionsFasterRCNNRetinaNet[count])
+#             count += 1
+
+                
+
 print("Evaluation du modèle FcosModel sans modification")
 predictionFcos, targetsOutFcos = getPredictionModel(FcosModel, BDD100K_dataloader, device)
 FcosModelBdd100KPrecision, FcosModelBdd100KRecall, FcosModelBdd100KTargetBoxes, FcosModelBdd100KPredBoxs, FcosModelBdd100KMap = evaluate_performance_model(predictionFcos, targetsOutFcos)
@@ -85,6 +97,10 @@ print("Evaluation de la combinaisons des modèles FasrerRCNNModel et RetinaNet a
 merge_predictionsFasterRCNNRetinaNet = merge_predictions_with_nms(predictionFasterRCNN, predictionRetinaNet)
 FasterRCNNRetinaNetModelBdd100KPrecisionNMS, FasterRCNNRetinaNetModelBdd100KRecallNMS, FasterRCNNRetinaNetModelBdd100KTargetBoxesNMS, FasterRCNNRetinaNetModelBdd100KPredBoxsNMS, FasterRCNNRetinaNetModelBdd100KMapNMS = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNet, targetsOutFasterRCNN)
 
+print("Evaluation de la combinaisons des modèles FasrerRCNNModel et RetinaNet avec IoU threshold à 0.5 et threshold évaluation à 0 avec wbf")
+merge_predictionsFasterRCNNRetinaNet = merge_predictions_with_wbf(predictionFasterRCNN, predictionRetinaNet)
+FasterRCNNRetinaNetModelBdd100KPrecisionWBFThreshold0, FasterRCNNRetinaNetModelBdd100KRecallWBFThreshold0, FasterRCNNRetinaNetModelBdd100KTargetBoxesWBFThreshold0, FasterRCNNRetinaNetModelBdd100KPredBoxsWBFThreshold0, FasterRCNNRetinaNetModelBdd100KMapWBFThreshold0 = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNet, targetsOutFasterRCNN, threshold=0)
+
 print("Evaluation de la combinaisons des modèles FasrerRCNNModel et Fcos avec filtre de confiance à 0.5 sans NMS")
 merge_predictionsFasterRCNNFcos = merge_predictions_without_nms(predictionFasterRCNN, predictionFcos)
 FasterRCNNFcosModelBdd100KPrecision, FasterRCNNFcosModelBdd100KRecall, FasterRCNNFcosModelBdd100KTargetBoxes, FasterRCNNFcosModelBdd100KPredBoxs, FasterRCNNFcosModelBdd100KMap = evaluate_performance_model(merge_predictionsFasterRCNNFcos, targetsOutFasterRCNN)
@@ -92,6 +108,10 @@ FasterRCNNFcosModelBdd100KPrecision, FasterRCNNFcosModelBdd100KRecall, FasterRCN
 print("Evaluation de la combinaisons des modèles FasrerRCNNModel et Fcos avec filtre de confiance à 0.5 avec NMS")
 merge_predictionsFasterRCNNFcos = merge_predictions_with_nms(predictionFasterRCNN, predictionFcos)
 FasterRCNNFcosModelBdd100KPrecisionNMS, FasterRCNNFcosModelBdd100KRecallNMS, FasterRCNNFcosModelBdd100KTargetBoxesNMS, FasterRCNNFcosModelBdd100KPredBoxsNMS, FasterRCNNFcosModelBdd100KMapNMS = evaluate_performance_model(merge_predictionsFasterRCNNFcos, targetsOutFasterRCNN)
+
+print("Evaluation de la combinaisons des modèles RetinaNetModel et Fcos avec IoU threshold à 0.5 et threshold évaluation à 0 avec wbf")
+merge_predictionsFasterRCNNFcos = merge_predictions_with_wbf(predictionFasterRCNN, predictionFcos)
+FasterRCNNFcosModelBdd100KPrecisionWBFThreshold0, FasterRCNNFcosModelBdd100KRecallWBFThreshold0, FasterRCNNFcosModelBdd100KTargetBoxesWBFThreshold0, FasterRCNNFcosModelBdd100KPredBoxsWBFThreshold0, FasterRCNNFcosModelBdd100KMapWBFThreshold0 = evaluate_performance_model(merge_predictionsFasterRCNNFcos, targetsOutFasterRCNN, threshold=0)
 
 print("Evaluation de la combinaisons des modèles RetinaNetModel et Fcos avec filtre de confiance à 0.5 sans NMS")
 merge_predictionsRetinaNetFcos = merge_predictions_without_nms(predictionRetinaNet, predictionFcos)
@@ -101,6 +121,10 @@ print("Evaluation de la combinaisons des modèles RetinaNetModel et Fcos avec fi
 merge_predictionsRetinaNetFcos = merge_predictions_with_nms(predictionRetinaNet, predictionFcos)
 RetinaNetFcosModelBdd100KPrecisionNMS, RetinaNetFcosModelBdd100KRecallNMS, RetinaNetFcosModelBdd100KTargetBoxesNMS, RetinaNetFcosModelBdd100KPredBoxsNMS, RetinaNetFcosModelBdd100KMapNMS = evaluate_performance_model(merge_predictionsRetinaNetFcos, targetsOutFasterRCNN)
 
+print("Evaluation de la combinaisons des modèles RetinaNetModel et Fcos avec IoU threshold à 0.5 et threshold évaluation à 0 avec wbf")
+merge_predictionsRetinaNetFcos = merge_predictions_with_wbf(predictionRetinaNet, predictionFcos)
+RetinaNetFcosModelBdd100KPrecisionWBFThreshold0, RetinaNetFcosModelBdd100KRecallWBFThreshold0, RetinaNetFcosModelBdd100KTargetBoxesWBFThreshold0, RetinaNetFcosModelBdd100KPredBoxsWBFThreshold0, RetinaNetFcosModelBdd100KMapWBFThreshold0 = evaluate_performance_model(merge_predictionsRetinaNetFcos, targetsOutFasterRCNN, threshold=0)
+
 print("Evaluation de la combinaisons des modèles FasrerRCNNModel, RetinaNet et Fcos avec filtre de confiance à 0.5 sans NMS")
 merge_predictionsFasterRCNNRetinaNetFcos = merge_predictions_without_nms(merge_predictionsFasterRCNNRetinaNet, predictionFcos)
 FasterRCNNRetinaNetFcosModelBdd100KPrecision, FasterRCNNRetinaNetFcosModelBdd100KRecall, FasterRCNNRetinaNetFcosModelBdd100KTargetBoxes, FasterRCNNRetinaNetFcosModelBdd100KPredBoxs, FasterRCNNRetinaNetFcosModelBdd100KMap = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNetFcos, targetsOutFasterRCNN)
@@ -109,7 +133,12 @@ print("Evaluation de la combinaisons des modèles FasrerRCNNModel, RetinaNet et 
 merge_predictionsFasterRCNNRetinaNetFcos = merge_predictions_with_nms(merge_predictionsFasterRCNNRetinaNet, predictionFcos)
 FasterRCNNRetinaNetFcosModelBdd100KPrecisionNMS, FasterRCNNRetinaNetFcosModelBdd100KRecallNMS, FasterRCNNRetinaNetFcosModelBdd100KTargetBoxesNMS, FasterRCNNRetinaNetFcosModelBdd100KPredBoxsNMS, FasterRCNNRetinaNetFcosModelBdd100KMapNMS = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNetFcos, targetsOutFasterRCNN)
 
-print("-------------------Evaluation des modèles sur le dataset COCO-------------------")
+print("Evaluation de la combinaisons des modèles FasrerRCNNModel, RetinaNet et Fcos avec IoU threshold à 0.5 et threshold évaluation à 0 avec wbf")
+merge_predictionsFasterRCNNRetinaNetFcos = merge_predictions_with_wbf(merge_predictionsFasterRCNNRetinaNet, predictionFcos)
+FasterRCNNRetinaNetFcosModelBdd100KPrecisionWBFThreshold0, FasterRCNNRetinaNetFcosModelBdd100KRecallWBFThreshold0, FasterRCNNRetinaNetFcosModelBdd100KTargetBoxesWBFThreshold0, FasterRCNNRetinaNetFcosModelBdd100KPredBoxsWBFThreshold0, FasterRCNNRetinaNetFcosModelBdd100KMapWBFThreshold0 = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNetFcos, targetsOutFasterRCNN, threshold=0)
+
+
+# print("-------------------Evaluation des modèles sur le dataset COCO-------------------")
 
 print("Evaluation du modèle FasterRCNNModel sans modification")
 predictionFasterRCNN, targetsOutFasterRCNN = getPredictionModel(FasterRCNNModel, Coco_dataloader, device)
@@ -118,6 +147,13 @@ FasterRCNNModelCocoPrecision, FasterRCNNModelCocoRecall, FasterRCNNModelCocoTarg
 print("Evaluation du modèle RetinaNetModel sans modification")
 predictionRetinaNet, targetsOutRetinaNet = getPredictionModel(RetinaNetModel, Coco_dataloader, device)
 RetinaNetModelCocoPrecision, RetinaNetModelCocoRecall, RetinaNetModelCocoTargetBoxes, RetinaNetModelCocoPredBoxs, RetinaNetModelCocoMap = evaluate_performance_model(predictionRetinaNet, targetsOutRetinaNet)
+
+# with torch.no_grad():
+#         count = 0
+#         for images, labels in Coco_dataloader:
+#             images = [img.to(device) for img in images]
+#             visualize_prediction(images, targetsOutFasterRCNN[count], merge_predictionsFasterRCNNRetinaNet[count])
+#             count += 1
 
 print("Evaluation du modèle FcosModel sans modification")
 predictionFcos, targetsOutFcos = getPredictionModel(FcosModel, Coco_dataloader, device)
@@ -131,6 +167,11 @@ print("Evaluation de la combinaisons des modèles FasrerRCNNModel et RetinaNet a
 merge_predictionsFasterRCNNRetinaNet = merge_predictions_with_nms(predictionFasterRCNN, predictionRetinaNet)
 FasterRCNNRetinaNetModelCocoPrecisionNMS, FasterRCNNRetinaNetModelCocoRecallNMS, FasterRCNNRetinaNetModelCocoTargetBoxesNMS, FasterRCNNRetinaNetModelCocoPredBoxsNMS, FasterRCNNRetinaNetModelCocoMapNMS = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNet, targetsOutFasterRCNN)
 
+print("Evaluation de la combinaisons des modèles FasrerRCNNModel et RetinaNet avec IoU threshold à 0.5 et threshold évaluation à 0 avec wbf")
+merge_predictionsFasterRCNNRetinaNet = merge_predictions_with_wbf(predictionFasterRCNN, predictionRetinaNet)
+FasterRCNNRetinaNetModelCocoPrecisionWBFThreshold0, FasterRCNNRetinaNetModelCocoRecallWBFThreshold0, FasterRCNNRetinaNetModelCocoTargetBoxesWBFThreshold0, FasterRCNNRetinaNetModelCocoPredBoxsWBFThreshold0, FasterRCNNRetinaNetModelCocoMapWBFThreshold0 = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNet, targetsOutFasterRCNN,threshold=0)
+
+
 print("Evaluation de la combinaisons des modèles FasrerRCNNModel et Fcos avec filtre de confiance à 0.5 sans NMS")
 merge_predictionsFasterRCNNFcos = merge_predictions_without_nms(predictionFasterRCNN, predictionFcos)
 FasterRCNNFcosModelCocoPrecision, FasterRCNNFcosModelCocoRecall, FasterRCNNFcosModelCocoTargetBoxes, FasterRCNNFcosModelCocoPredBoxs, FasterRCNNFcosModelCocoMap = evaluate_performance_model(merge_predictionsFasterRCNNFcos, targetsOutFasterRCNN)
@@ -138,6 +179,10 @@ FasterRCNNFcosModelCocoPrecision, FasterRCNNFcosModelCocoRecall, FasterRCNNFcosM
 print("Evaluation de la combinaisons des modèles FasrerRCNNModel et Fcos avec filtre de confiance à 0.5 avec NMS")
 merge_predictionsFasterRCNNFcos = merge_predictions_with_nms(predictionFasterRCNN, predictionFcos)
 FasterRCNNFcosModelCocoPrecisionNMS, FasterRCNNFcosModelCocoRecallNMS, FasterRCNNFcosModelCocoTargetBoxesNMS, FasterRCNNFcosModelCocoPredBoxsNMS, FasterRCNNFcosModelCocoMapNMS = evaluate_performance_model(merge_predictionsFasterRCNNFcos, targetsOutFasterRCNN)
+
+print("Evaluation de la combinaisons des modèles FasrerRCNNModel et Fcos avec IoU threshold à 0.5 et threshold évaluation à 0 avec wbf")
+merge_predictionsFasterRCNNFcos = merge_predictions_with_wbf(predictionFasterRCNN, predictionFcos)
+FasterRCNNFcosModelCocoPrecisionWBFThreshold0, FasterRCNNFcosModelCocoRecallWBFThreshold0, FasterRCNNFcosModelCocoTargetBoxesWBFThreshold0, FasterRCNNFcosModelCocoPredBoxsWBFThreshold0, FasterRCNNFcosModelCocoMapWBFThreshold0 = evaluate_performance_model(merge_predictionsFasterRCNNFcos, targetsOutFasterRCNN, threshold=0)
 
 print("Evaluation de la combinaisons des modèles RetinaNetModel et Fcos avec filtre de confiance à 0.5 sans NMS")
 merge_predictionsRetinaNetFcos = merge_predictions_without_nms(predictionRetinaNet, predictionFcos)
@@ -147,6 +192,10 @@ print("Evaluation de la combinaisons des modèles RetinaNetModel et Fcos avec fi
 merge_predictionsRetinaNetFcos = merge_predictions_with_nms(predictionRetinaNet, predictionFcos)
 RetinaNetFcosModelCocoPrecisionNMS, RetinaNetFcosModelCocoRecallNMS, RetinaNetFcosModelCocoTargetBoxesNMS, RetinaNetFcosModelCocoPredBoxsNMS, RetinaNetFcosModelCocoMapNMS = evaluate_performance_model(merge_predictionsRetinaNetFcos, targetsOutFasterRCNN)
 
+print("Evaluation de la combinaisons des modèles RetinaNetModel et Fcos avec IoU threshold à 0.5 et threshold évaluation à 0 avec wbf")
+merge_predictionsRetinaNetFcos = merge_predictions_with_wbf(predictionRetinaNet, predictionFcos)
+RetinaNetFcosModelCocoPrecisionWBFThreshold0, RetinaNetFcosModelCocoRecallWBFThreshold0, RetinaNetFcosModelCocoTargetBoxesWBFThreshold0, RetinaNetFcosModelCocoPredBoxsWBFThreshold0, RetinaNetFcosModelCocoMapWBFThreshold0 = evaluate_performance_model(merge_predictionsRetinaNetFcos, targetsOutFasterRCNN, threshold=0)
+
 print("Evaluation de la combinaisons des modèles FasrerRCNNModel, RetinaNet et Fcos avec filtre de confiance à 0.5 sans NMS")
 merge_predictionsFasterRCNNRetinaNetFcos = merge_predictions_without_nms(merge_predictionsFasterRCNNRetinaNet, predictionFcos)
 FasterRCNNRetinaNetFcosModelCocoPrecision, FasterRCNNRetinaNetFcosModelCocoRecall, FasterRCNNRetinaNetFcosModelCocoTargetBoxes, FasterRCNNRetinaNetFcosModelCocoPredBoxs, FasterRCNNRetinaNetFcosModelCocoMap = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNetFcos, targetsOutFasterRCNN)
@@ -154,6 +203,10 @@ FasterRCNNRetinaNetFcosModelCocoPrecision, FasterRCNNRetinaNetFcosModelCocoRecal
 print("Evaluation de la combinaisons des modèles FasrerRCNNModel, RetinaNet et Fcos avec filtre de confiance à 0.5 avec NMS")
 merge_predictionsFasterRCNNRetinaNetFcos = merge_predictions_with_nms(merge_predictionsFasterRCNNRetinaNet, predictionFcos)
 FasterRCNNRetinaNetFcosModelCocoPrecisionNMS, FasterRCNNRetinaNetFcosModelCocoRecallNMS, FasterRCNNRetinaNetFcosModelCocoTargetBoxesNMS, FasterRCNNRetinaNetFcosModelCocoPredBoxsNMS, FasterRCNNRetinaNetFcosModelCocoMapNMS = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNetFcos, targetsOutFasterRCNN)
+
+print("Evaluation de la combinaisons des modèles FasrerRCNNModel, RetinaNet et Fcos avec IoU threshold à 0.5 et threshold évaluation à 0 avec wbf")
+merge_predictionsFasterRCNNRetinaNetFcos = merge_predictions_with_wbf(merge_predictionsFasterRCNNRetinaNet, predictionFcos)
+FasterRCNNRetinaNetFcosModelCocoPrecisionWBFThreshold0, FasterRCNNRetinaNetFcosModelCocoRecallWBFThreshold0, FasterRCNNRetinaNetFcosModelCocoTargetBoxesWBFThreshold0, FasterRCNNRetinaNetFcosModelCocoPredBoxsWBFThreshold0, FasterRCNNRetinaNetFcosModelCocoMapWBFThreshold0 = evaluate_performance_model(merge_predictionsFasterRCNNRetinaNetFcos, targetsOutFasterRCNN, threshold=0)
 
 # Ecrire dans un fichier tex les informations sous forme de tableau
 with open("Resultats/performance_model_mAP.tex", "w") as f:
@@ -177,17 +230,25 @@ with open("Resultats/performance_model_mAP.tex", "w") as f:
     f.write("\\hline\n")
     f.write("Faster R-CNN, RetinaNet NMS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNRetinaNetModelBdd100KPrecisionNMS, FasterRCNNRetinaNetModelBdd100KRecallNMS, FasterRCNNRetinaNetModelBdd100KMapNMS, FasterRCNNRetinaNetModelCocoPrecisionNMS, FasterRCNNRetinaNetModelCocoRecallNMS, FasterRCNNRetinaNetModelCocoMapNMS))
     f.write("\\hline\n")
+    f.write("Faster R-CNN, RetinaNet WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNRetinaNetModelBdd100KPrecisionWBFThreshold0, FasterRCNNRetinaNetModelBdd100KRecallWBFThreshold0, FasterRCNNRetinaNetModelBdd100KMapWBFThreshold0, FasterRCNNRetinaNetModelCocoPrecisionWBFThreshold0, FasterRCNNRetinaNetModelCocoRecallWBFThreshold0, FasterRCNNRetinaNetModelCocoMapWBFThreshold0))
+    f.write("\\hline\n")
     f.write("Faster R-CNN, FCOS Cat & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNFcosModelBdd100KPrecision, FasterRCNNFcosModelBdd100KRecall, FasterRCNNFcosModelBdd100KMap, FasterRCNNFcosModelCocoPrecision, FasterRCNNFcosModelCocoRecall, FasterRCNNFcosModelCocoMap))
     f.write("\\hline\n")
     f.write("Faster R-CNN, FCOS NMS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNFcosModelBdd100KPrecisionNMS, FasterRCNNFcosModelBdd100KRecallNMS, FasterRCNNFcosModelBdd100KMapNMS, FasterRCNNFcosModelCocoPrecisionNMS, FasterRCNNFcosModelCocoRecallNMS, FasterRCNNFcosModelCocoMapNMS))
+    f.write("\\hline\n")
+    f.write("Faster R-CNN, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNFcosModelBdd100KPrecisionWBFThreshold0, FasterRCNNFcosModelBdd100KRecallWBFThreshold0, FasterRCNNFcosModelBdd100KMapWBFThreshold0, FasterRCNNFcosModelCocoPrecisionWBFThreshold0, FasterRCNNFcosModelCocoRecallWBFThreshold0, FasterRCNNFcosModelCocoMapWBFThreshold0))
     f.write("\\hline\n")
     f.write("RetinaNet, FCOS Cat & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RetinaNetFcosModelBdd100KPrecision, RetinaNetFcosModelBdd100KRecall, RetinaNetFcosModelBdd100KMap, RetinaNetFcosModelCocoPrecision, RetinaNetFcosModelCocoRecall, RetinaNetFcosModelCocoMap))
     f.write("\\hline\n")
     f.write("RetinaNet, FCOS NMS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RetinaNetFcosModelBdd100KPrecisionNMS, RetinaNetFcosModelBdd100KRecallNMS, RetinaNetFcosModelBdd100KMapNMS, RetinaNetFcosModelCocoPrecisionNMS, RetinaNetFcosModelCocoRecallNMS, RetinaNetFcosModelCocoMapNMS))
     f.write("\\hline\n")
+    f.write("RetinaNet, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RetinaNetFcosModelBdd100KPrecisionWBFThreshold0, RetinaNetFcosModelBdd100KRecallWBFThreshold0, RetinaNetFcosModelBdd100KMapWBFThreshold0, RetinaNetFcosModelCocoPrecisionWBFThreshold0, RetinaNetFcosModelCocoRecallWBFThreshold0, RetinaNetFcosModelCocoMapWBFThreshold0))
+    f.write("\\hline\n")
     f.write("Faster R-CNN, RetinaNet, FCOS Cat & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNRetinaNetFcosModelBdd100KPrecision, FasterRCNNRetinaNetFcosModelBdd100KRecall, FasterRCNNRetinaNetFcosModelBdd100KMap, FasterRCNNRetinaNetFcosModelCocoPrecision, FasterRCNNRetinaNetFcosModelCocoRecall, FasterRCNNRetinaNetFcosModelCocoMap))
     f.write("\\hline\n")
     f.write("Faster R-CNN, RetinaNet, FCOS NMS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNRetinaNetFcosModelBdd100KPrecisionNMS, FasterRCNNRetinaNetFcosModelBdd100KRecallNMS, FasterRCNNRetinaNetFcosModelBdd100KMapNMS, FasterRCNNRetinaNetFcosModelCocoPrecisionNMS, FasterRCNNRetinaNetFcosModelCocoRecallNMS, FasterRCNNRetinaNetFcosModelCocoMapNMS))
+    f.write("\\hline\n")
+    f.write("Faster R-CNN, RetinaNet, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNRetinaNetFcosModelBdd100KPrecisionWBFThreshold0, FasterRCNNRetinaNetFcosModelBdd100KRecallWBFThreshold0, FasterRCNNRetinaNetFcosModelBdd100KMapWBFThreshold0, FasterRCNNRetinaNetFcosModelCocoPrecisionWBFThreshold0, FasterRCNNRetinaNetFcosModelCocoRecallWBFThreshold0, FasterRCNNRetinaNetFcosModelCocoMapWBFThreshold0))
     f.write("\\hline\n")
     f.write("\\end{tabular}\n")
     f.write("\\caption{Résultats des différents modèles en fonction de la base de test.}\n")
