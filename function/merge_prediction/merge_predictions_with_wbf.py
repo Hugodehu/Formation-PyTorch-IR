@@ -2,9 +2,9 @@ import numpy as np
 import torch
 import function.compute_iou as compute_iou
 
-def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, threshold=0.5):
+def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, IoU_threshold=0.5, threshold=0.5):
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else"cpu"
-    regrouped_predictions = regroup_predictions(predictionsModel1, predictionsModel2)
+    regrouped_predictions = regroup_predictions(predictionsModel1, predictionsModel2, threshold)
     fusionListList = []
     clusterListList = []
     clusterList = []
@@ -24,8 +24,7 @@ def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, threshold=0
                 matched = False
                 for idfusion, fusionbox in enumerate(fusionboxes):
                     iou = bb_iou_array(box, fusionbox)
-                    if iou > threshold:
-                        
+                    if iou > IoU_threshold:
                         cluster["boxes"][idfusion].append(box.cpu().numpy())
                         cluster["scores"][idfusion].append(scores[idx].item())
                         cluster["labels"][idfusion].append(labels[idx].item())
@@ -67,7 +66,7 @@ def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, threshold=0
     return fusionListList
             
 
-def regroup_predictions(predictionsModel1, predictionsModel2):
+def regroup_predictions(predictionsModel1, predictionsModel2, threshold):
     output = []
     for predictions1, predictions2 in zip(predictionsModel1, predictionsModel2):
         merged_predictions = []
@@ -79,6 +78,12 @@ def regroup_predictions(predictionsModel1, predictionsModel2):
             combined_boxes = torch.cat((boxes1, boxes2), dim=0)
             combined_scores = torch.cat((scores1, scores2), dim=0)
             combined_labels = torch.cat((labels1, labels2), dim=0)
+
+            # Filter out low-confidence boxes
+            high_conf_idx = combined_scores >= threshold
+            combined_boxes = combined_boxes[high_conf_idx]
+            combined_scores = combined_scores[high_conf_idx]
+            combined_labels = combined_labels[high_conf_idx]
             
             merged_predictions.append({'boxes': combined_boxes, 'labels': combined_labels, 'scores': combined_scores})
         output.append(merged_predictions)
