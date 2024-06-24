@@ -1,6 +1,6 @@
 import torch
 from collections import Counter
-from function.compute_iou import compute_iou
+from function.calculate_IoU import compute_iou
 
 def mean_average_precision(pred_boxes, true_boxes, iou_threshold=0.5, num_classes=91):
     """

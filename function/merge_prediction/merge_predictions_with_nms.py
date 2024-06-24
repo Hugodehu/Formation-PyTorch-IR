@@ -1,25 +1,15 @@
 import torch
 from torchvision.ops import nms
 
+from function.merge_prediction.regroup_predictions_filter_low_confidence_box import RegroupPredictionsFilterLowConfidenceBox
+
 
 def merge_predictions_with_nms(predictionsModel1, predictionsModel2, iou_threshold=0.5, threshold=0.5):
     output = []
     for predictions, predictions2 in zip(predictionsModel1, predictionsModel2):
         merged_predictions = []
         for pred1, pred2 in zip(predictions, predictions2):
-            boxes1, scores1, labels1 = pred1['boxes'], pred1['scores'], pred1['labels']
-            boxes2, scores2, labels2 = pred2['boxes'], pred2['scores'], pred2['labels']
-            
-            # Combine boxes and scores from both models
-            combined_boxes = torch.cat((boxes1, boxes2), dim=0)
-            combined_scores = torch.cat((scores1, scores2), dim=0)
-            combined_labels = torch.cat((labels1, labels2), dim=0)
-
-            # Filter out low-confidence boxes
-            high_conf_idx = combined_scores >= threshold
-            combined_boxes = combined_boxes[high_conf_idx]
-            combined_scores = combined_scores[high_conf_idx]
-            combined_labels = combined_labels[high_conf_idx]
+            combined_boxes, combined_scores, combined_labels = RegroupPredictionsFilterLowConfidenceBox(pred1, pred2, threshold)
             
             # Apply NMS to the combined boxes
             keep = nms(combined_boxes, combined_scores, iou_threshold)

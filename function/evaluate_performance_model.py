@@ -1,5 +1,5 @@
 import torch
-from function.compute_iou import compute_iou
+from function.calculate_IoU import compute_iou
 from torchmetrics.detection import MeanAveragePrecision
 
 def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, threshold=0.5):

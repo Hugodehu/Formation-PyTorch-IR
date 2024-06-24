@@ -47,16 +47,7 @@ FasterRCNNModelBdd100KPrecision, FasterRCNNModelBdd100KRecall, FasterRCNNModelBd
 print("Evaluation du modèle RetinaNetModel sans modification")
 predictionRetinaNet, targetsOutRetinaNet = getPredictionModel(RetinaNetModel, BDD100K_dataloader, device)
 RetinaNetModelBdd100KPrecision, RetinaNetModelBdd100KRecall, RetinaNetModelBdd100KTargetBoxes, RetinaNetModelBdd100KPredBoxs, RetinaNetModelBdd100KMap = evaluate_performance_model(predictionRetinaNet, targetsOutRetinaNet)
-
-
-# with torch.no_grad():
-#         count = 0
-#         for images, labels in BDD100K_dataloader:
-#             images = [img.to(device) for img in images]
-#             visualize_prediction(images, targetsOutFasterRCNN[count], merge_predictionsFasterRCNNRetinaNet[count])
-#             count += 1
-
-                
+           
 
 # print("Evaluation du modèle FcosModel sans modification")
 # predictionFcos, targetsOutFcos = getPredictionModel(FcosModel, BDD100K_dataloader, device)
