@@ -1,7 +1,34 @@
 from matplotlib import patches, pyplot as plt
+import torch
+
+def show_comparison_image_models(listModels, dataloader, targetsOut, ListLablesImage, device):
+    with torch.no_grad():
+        count = 0
+        for models in listModels:
+            for prediction in models:
+                for output in prediction:
+                    pred_boxes = output['boxes']
+                    scores = output['scores']
+                    # Filter out low-confidence boxes
+                    pred_boxes = pred_boxes[scores >= 0.5]
+                    scores = scores[scores >= 0.5]
+                    output['boxes'] = pred_boxes
+                    output['scores'] = scores
+
+        for images, labels in dataloader:
+            images = [img.to(device) for img in images]
+            for idx, img in enumerate(images):
+                listPred = []
+                i = 0
+                while i < len(listModels):
+                    listPred.append(listModels[i][count][idx])
+                    i += 1
+                visualize_prediction(img, targetsOut[count][idx], listPred, ListLablesImage)
+            count += 1
+
 
 def visualize_prediction(image, true_boxes, pred_boxes, ListNameModels):
-    fig, axes = plt.subplots(2, 2, figsize=(20, 10))
+    fig, axes = plt.subplots(1, 3, figsize=(20, 10))
     axes = axes.flatten()  # Flatten the axes array for easy iteration
 
     for boxes, ax, model in zip(pred_boxes, axes, ListNameModels):
@@ -27,13 +54,7 @@ def visualize_prediction(image, true_boxes, pred_boxes, ListNameModels):
             ax.text(x1, y1, str(label), verticalalignment='top', color='red', fontsize=12, weight='bold')
         
         # Add model name in the top right corner
-        ax.text(
-            0.95, 0.05, model, 
-            verticalalignment='top', horizontalalignment='right', 
-            transform=ax.transAxes,
-            color='white', fontsize=14, weight='bold',
-            bbox=dict(facecolor='black', alpha=0.5, edgecolor='none', boxstyle='round,pad=0.3')
-        )
+        ax.title.set_text(model)
         ax.axis('off')
     
     plt.tight_layout()

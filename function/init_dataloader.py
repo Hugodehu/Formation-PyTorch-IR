@@ -5,7 +5,7 @@ from classes.custom_dataset_bdd100k import CustomDataset, collate_fn_for_bdd100K
 
 from classes.custom_dataset_bdd100k import CustomDataset
 
-def initialiseDataloader():
+def initialiseDataloader(isSubset):
     """
     Initialize and return dataloaders for BDD100K and COCO datasets.
 
@@ -29,10 +29,20 @@ def initialiseDataloader():
 
     batch_size = 4 # 4 images per batch
 
-    # Create data loaders.
-    BDD100K_dataloader = DataLoader(BDD100Ksubset_dataset, batch_size=batch_size, collate_fn=collate_fn_for_bdd100K)
+    if(isSubset):
+        # Create data loaders.
+        BDD100KSubset_dataloader = DataLoader(BDD100Ksubset_dataset, batch_size=batch_size, collate_fn=collate_fn_for_bdd100K)
 
-    COCOsubset_dataset = Subset(COCO_dataset, subset_indices)
+        COCOsubset_dataset = Subset(COCO_dataset, subset_indices)
 
-    Coco_dataloader = DataLoader(COCOsubset_dataset, batch_size=batch_size, collate_fn=collate_fn_for_coco)
-    return BDD100K_dataloader, Coco_dataloader
+        Cocosubset_dataloader = DataLoader(COCOsubset_dataset, batch_size=batch_size, collate_fn=collate_fn_for_coco)
+
+        return BDD100KSubset_dataloader, Cocosubset_dataloader
+
+
+    else:
+        BDD100K_dataloader = DataLoader(BDD100K_dataset, batch_size=batch_size, collate_fn=collate_fn_for_bdd100K)
+
+        Coco_dataloader = DataLoader(COCO_dataset, batch_size=batch_size, collate_fn=collate_fn_for_coco)
+
+        return BDD100K_dataloader, Coco_dataloader

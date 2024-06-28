@@ -1,9 +1,10 @@
+import warnings
 import numpy as np
 import torch
 import function.calculate_IoU as calculate_IoU
 from function.merge_prediction.regroup_predictions_filter_low_confidence_box import RegroupPredictionsFilterLowConfidenceBox
 
-def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, IoU_threshold=0.5, threshold=0.5):
+def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, IoU_threshold=0.5, threshold=0.5, number_of_models=2):
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else"cpu"
     regrouped_predictions = regroup_predictions(predictionsModel1, predictionsModel2, threshold)
     fusionListList = []
@@ -17,18 +18,19 @@ def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, IoU_thresho
         for prediction in predictions:
             fusion = {'boxes': [], 'scores': [], 'labels': []}
             cluster = {'boxes': [], 'scores': [], 'labels': []}
-            boxes = prediction['boxes']
-            scores = prediction['scores']
-            labels = prediction['labels']
+            predBoxes = prediction['boxes']
+            predScores = prediction['scores']
+            predLabels = prediction['labels']
             fusionboxes = fusion['boxes']
-            for idx, box in enumerate(boxes):
+            for idx, predBox in enumerate(predBoxes):
                 matched = False
                 for idfusion, fusionbox in enumerate(fusionboxes):
-                    iou = calculate_IoU.bb_iou_array(box, fusionbox)
-                    if iou > IoU_threshold:
-                        cluster["boxes"][idfusion].append(box.cpu().numpy())
-                        cluster["scores"][idfusion].append(scores[idx].item())
-                        cluster["labels"][idfusion].append(labels[idx].item())
+                    iou = calculate_IoU.bb_iou_array(predBox, fusionbox)
+                    sameLabel = predLabels[idx] == fusion['labels'][idfusion]
+                    if iou > IoU_threshold and sameLabel.item():
+                        cluster["boxes"][idfusion].append(predBox.cpu().numpy())
+                        cluster["scores"][idfusion].append(predScores[idx].item())
+                        cluster["labels"][idfusion].append(predLabels[idx].item())
                         matched = True
 
                         T = cluster["boxes"][idfusion]
@@ -39,12 +41,12 @@ def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, IoU_thresho
                         fusion['boxes'][idfusion] = new_box
                         break
                 if not matched:
-                    cluster['boxes'].append([box.cpu().numpy()])
-                    cluster['scores'].append([scores[idx].item()])
-                    cluster['labels'].append([labels[idx].item()])
-                    fusion['scores'].append(scores[idx].item())
-                    fusion['boxes'].append(box.cpu().numpy())
-                    fusion['labels'].append(labels[idx].item())
+                    cluster['boxes'].append([predBox.cpu().numpy()])
+                    cluster['scores'].append([predScores[idx].item()])
+                    cluster['labels'].append([predLabels[idx].item()])
+                    fusion['scores'].append(predScores[idx].item())
+                    fusion['boxes'].append(predBox.cpu().numpy())
+                    fusion['labels'].append(predLabels[idx].item())
             
             fusionList.append({'boxes': torch.tensor(fusion['boxes'], device=device), 'scores': torch.tensor(fusion['scores'], device=device), 'labels': torch.tensor(fusion['labels'], device=device)})
             clusterList.append(cluster)
@@ -53,16 +55,17 @@ def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, IoU_thresho
 
         for idxFusions, fusions in enumerate(fusionListList):
             for idxFusion, fusion in enumerate(fusions):
-                scores = fusion['scores']
+                predScores = fusion['scores']
                 T = len(fusion["scores"])
-                min_T_N = min(T, 2)
-                for idx, score in enumerate(scores):
+                min_T_N = min(T, number_of_models)
+                for idx, score in enumerate(predScores):
                     T = len(clusterListList[idxFusions][idxFusion]["boxes"][idx])
-                    min_T_N = min(T, 2)                
-                    # if method == 1:
-                    score = score * (min_T_N / 2)
-                    # elif method == 2:
-                    #     F[idx]['score'] = F[idx]['score'] * (T / N)
+                    if T < number_of_models: 
+                        min_T_N = min(T, number_of_models)                
+                        # if method == 1:
+                        score = score * (min_T_N / number_of_models)
+                    else:
+                        score = score * (T / number_of_models)
     
     return fusionListList
             

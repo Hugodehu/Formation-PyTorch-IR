@@ -21,23 +21,29 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
     total_iou = 0
     Target_num_boxes = 0
     num_boxes = 0
-    
-
+    imageNumber = 1
+    listoutputs = []
+    listtargets = []
     with torch.no_grad():
         for outputs, targets in zip(prediction, targetsOut):
-            for target, output in zip(targets, outputs):
+            for idx, (target, output) in enumerate(zip(targets, outputs)):
                 true_positives = 0
                 false_positives = 0
                 false_negatives = 0
                 target_boxes = target['boxes']
                 pred_boxes = output['boxes']
                 scores = output['scores']
-
                 # Filter out low-confidence boxes
                 pred_boxes = pred_boxes[scores >= threshold]
-                
+                labels = output['labels'][scores >= threshold]
+                scores = scores[scores >= threshold]
+                output['boxes'] = pred_boxes
+                output['scores'] = scores
+                output['labels'] = labels
+
                 num_boxes += len(pred_boxes)
                 Target_num_boxes += len(target_boxes)
+
                 if len(pred_boxes) == 0:
                     false_negatives_total += len(target_boxes)
                     false_negatives += len(target_boxes)
@@ -49,34 +55,40 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
                     continue
 
                 iou_matrix = compute_iou(target_boxes, pred_boxes)
-                
-                for i in range(len(target_boxes)):
-                    max_iou, _ = iou_matrix[i].max(0)
-                    total_iou += max_iou.item()
+                for j in range(len(pred_boxes)):
+                    max_iou, _ = iou_matrix[:, j].max(0)
                     if max_iou.item() >= iou_threshold:
                         true_positives_total += 1
                         true_positives += 1
-
                     else:
-                        false_negatives_total += 1
-                        false_negatives += 1
-
-                for j in range(len(pred_boxes)):
-                    max_iou, _ = iou_matrix[:, j].max(0)
-                    if max_iou.item() < iou_threshold:
                         false_positives_total += 1
                         false_positives += 1
 
-            metric = MeanAveragePrecision(iou_type="bbox")
-            metric.update(outputs, targets)
-            metric.compute()
+                for i in range(len(target_boxes)):
+                    max_iou, _ = iou_matrix[i].max(0)
+                    total_iou += max_iou.item()
+                    if max_iou.item() < iou_threshold:
+                        false_negatives_total += 1
+                        false_negatives += 1
 
-    
+                listoutputs.append(output)
+                listtargets.append(target)
 
-    mAP = metric.compute()   
-    map = mAP['map'].item()*100         
-    precision = true_positives_total / (true_positives_total + false_positives_total) # représente la proportion de prédictions correctes parmi les prédictions positives
-    recall = true_positives_total / (true_positives_total + false_negatives_total) # représente la proportion de prédictions correctes parmi les vrais positifs
+                # accuracy = true_positives / (true_positives + false_positives + false_negatives) * 100
+                # precisionImage = true_positives / (true_positives + false_positives)
+                # recallImage = true_positives / (true_positives + false_negatives)
+                # print(f"Image {imageNumber} : Accuracy: {accuracy:.2f}, Precision: {precisionImage:.4f}, Recall: {recallImage:.4f}, Number of target boxes: {len(target_boxes)}, Number of predicted boxes: {len(pred_boxes)}, TP: {true_positives}, FP: {false_positives}, FN: {false_negatives}\n")
+                # imageNumber += 1
+
+            # metric = MeanAveragePrecision()
+            # metric.update(outputs, targets)
+            # mAP = metric.compute()
+    metric = MeanAveragePrecision()
+    metric.update(listoutputs, listtargets)
+    mAP = metric.compute()  
+    map = mAP['map'].item()*100 if mAP['map'] >=0 else 0       
+    precision = true_positives_total / (true_positives_total + false_positives_total) if true_positives_total + false_positives_total > 0 else 0 # représente la proportion de prédictions correctes parmi les prédictions totales
+    recall = true_positives_total / (true_positives_total + false_negatives_total) if true_positives_total + false_negatives_total > 0 else 0 # représente la proportion de prédictions correctes parmi les vrais positifs
     
     print(f"Nombre de boîtes de l'image optimal: {Target_num_boxes}")
     print(f"Nombre de boîtes de l'image prédit: {num_boxes}")
