@@ -4,7 +4,7 @@ import torch
 def RegroupPredictionsFilterLowConfidenceBox(pred1, pred2, threshold=0.5):
     boxes1, scores1, labels1 = pred1['boxes'], pred1['scores'], pred1['labels']
     boxes2, scores2, labels2 = pred2['boxes'], pred2['scores'], pred2['labels']
-            
+    
      # Combine boxes and scores from both models
     combined_boxes = torch.cat((boxes1, boxes2), dim=0)
     combined_scores = torch.cat((scores1, scores2), dim=0)

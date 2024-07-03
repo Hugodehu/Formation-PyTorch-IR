@@ -27,7 +27,7 @@ def initialiseDataloader(isSubset):
     subset_indices = list(range(100))
     BDD100Ksubset_dataset = Subset(BDD100K_dataset, subset_indices)
 
-    batch_size = 4 # 4 images per batch
+    batch_size = 1 # 1 images per batch
 
     if(isSubset):
         # Create data loaders.

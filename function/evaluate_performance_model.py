@@ -1,8 +1,9 @@
+from matplotlib import pyplot as plt
 import torch
 from function.calculate_IoU import compute_iou
 from torchmetrics.detection import MeanAveragePrecision
 
-def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, threshold=0.5):
+def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, threshold=0):
     """
     Evaluates the performance of a model by calculating precision and recall metrics.
 
@@ -24,6 +25,7 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
     imageNumber = 1
     listoutputs = []
     listtargets = []
+    metric = MeanAveragePrecision(class_metrics=True, extended_summary=True)
     with torch.no_grad():
         for outputs, targets in zip(prediction, targetsOut):
             for idx, (target, output) in enumerate(zip(targets, outputs)):
@@ -71,9 +73,6 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
                         false_negatives_total += 1
                         false_negatives += 1
 
-                listoutputs.append(output)
-                listtargets.append(target)
-
                 # accuracy = true_positives / (true_positives + false_positives + false_negatives) * 100
                 # precisionImage = true_positives / (true_positives + false_positives)
                 # recallImage = true_positives / (true_positives + false_negatives)
@@ -81,11 +80,17 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
                 # imageNumber += 1
 
             # metric = MeanAveragePrecision()
-            # metric.update(outputs, targets)
+            for output in outputs:
+                labels = output['labels']
+                for idx, label in enumerate(labels):
+                    if not isinstance(label.item(), int):
+                        # print(f"label de type : {type(label)}, valeurs :{label}")
+                        labels[idx] = label.to(torch.int)
+                output['labels'] = labels
+            metric.update(outputs, targets)
             # mAP = metric.compute()
-    metric = MeanAveragePrecision()
-    metric.update(listoutputs, listtargets)
     mAP = metric.compute()  
+    # plot_precision_recall_curve(mAP['map_per_class'], mAP['classes'])
     map = mAP['map'].item()*100 if mAP['map'] >=0 else 0       
     precision = true_positives_total / (true_positives_total + false_positives_total) if true_positives_total + false_positives_total > 0 else 0 # représente la proportion de prédictions correctes parmi les prédictions totales
     recall = true_positives_total / (true_positives_total + false_negatives_total) if true_positives_total + false_negatives_total > 0 else 0 # représente la proportion de prédictions correctes parmi les vrais positifs
@@ -95,3 +100,30 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
     print(f"Precision: {precision:.4f}, Recall: {recall:.4f}")
     print(f"mAP: {map: .4f}\n")
     return precision, recall, Target_num_boxes, num_boxes, map
+
+
+def plot_precision_recall_curve(mAPClasses, classes):
+    """
+    Trace la courbe de précision en fonction du rappel.
+
+    Args:
+        precisions (list): Liste des précisions.
+        recalls (list): Liste des rappels.
+    """
+    mAPClassesArray = mAPClasses.cpu().numpy()
+    classesArray = classes.cpu().numpy()
+    # Traçage de la courbe de précision-rappel
+    plt.figure(figsize=(10, 6))
+    plt.scatter(classesArray, mAPClassesArray, color='b', marker='o')
+
+    # Ajout des labels et du titre
+    plt.xlabel('Classes')
+    plt.ylabel('mAP')
+    plt.title('Nuage de Points de la mAP par Classe')
+    plt.grid(True)
+
+    # Optionnel : Ajout des labels pour chaque point
+    for i, txt in enumerate(mAPClassesArray):
+        plt.annotate(f'{txt:.2f}', (classes[i], mAPClassesArray[i]), textcoords="offset points", xytext=(0,10), ha='center')
+
+    plt.show()

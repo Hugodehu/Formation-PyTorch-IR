@@ -1,0 +1,60 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\begin{document}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|c|} 
+\hline
+Model & precision & recall & mAP \\ 
+\hline
+F R-CNN & 0.2664 & 0.9335 & 55.4553 \\ 
+\hline
+RetinaNet & 0.2036 & 0.9801 & 50.2337 \\ 
+\hline
+FCOS & 0.3097 & 0.9575 & 46.7434 \\ 
+\hline
+F R-CNN, RetinaNet Cat & 0.5858 & 0.7928 & 52.7251 \\ 
+\hline
+F R-CNN, RetinaNet NMS & 0.5858 & 0.7928 & 52.7251 \\ 
+\hline
+F R-CNN, RetinaNet WBF & 0.5882 & 0.7962 & 53.3109 \\ 
+\hline
+F RCNN, RetinaNet Extension WBF & 0.5882 & 0.7962 & 53.3275 \\ 
+\hline
+F R-CNN, RetinaNet Soft NMS & 0.6753 & 0.8683 & 52.5668 \\ 
+\hline
+F R-CNN, FCOS Cat & 0.5642 & 0.8078 & 53.3045 \\ 
+\hline
+F R-CNN, FCOS NMS & 0.5638 & 0.8064 & 53.3032 \\ 
+\hline
+F R-CNN, FCOS WBF & 0.5733 & 0.8143 & 51.5393 \\ 
+\hline
+F R-CNN, FCOS Extension WBF & 0.5742 & 0.8146 & 51.7417 \\ 
+\hline
+F R-CNN, FCOS Soft NMS & 0.6442 & 0.8855 & 53.6224 \\ 
+\hline
+RetinaNet, FCOS Cat & 0.7015 & 0.6583 & 43.0416 \\ 
+\hline
+RetinaNet, FCOS NMS & 0.7015 & 0.6583 & 43.0416 \\ 
+\hline
+RetinaNet, FCOS WBF & 0.7042 & 0.6685 & 43.2589 \\ 
+\hline
+RetinaNet, FCOS Extension WBF & 0.7042 & 0.6685 & 43.2738 \\ 
+\hline
+RetinaNet, FCOS Soft NMS & 0.7710 & 0.7856 & 41.6637 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Cat & 0.5606 & 0.8086 & 53.3036 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS NMS & 0.5606 & 0.8086 & 53.3036 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS WBF & 0.7183 & 0.6685 & 44.2283 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Extension WBF & 0.7183 & 0.6685 & 44.5460 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Soft NMS & 0.6888 & 0.9142 & 52.7630 \\ 
+\hline
+\end{tabular}
+\caption{Résultats des différents modèles en fonction de la base de test.}
+\label{table:data}
+\end{table}
+\end{document}

@@ -190,4 +190,4 @@ def convertClassesBdd100KToClassesCOCO(classes):
     if(classes == "traffic sign"):
         return 12
     else:
-        return -3
+        return 0
