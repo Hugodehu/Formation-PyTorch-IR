@@ -5,7 +5,7 @@ from classes.custom_dataset_bdd100k import CustomDataset, collate_fn_for_bdd100K
 
 from classes.custom_dataset_bdd100k import CustomDataset
 
-def initialiseDataloader(isSubset):
+def initialiseDataloader(isSubset, subsetSize=100):
     """
     Initialize and return dataloaders for BDD100K and COCO datasets.
 
@@ -24,7 +24,7 @@ def initialiseDataloader(isSubset):
     COCO_dataset = datasets.CocoDetection(root=img_dir_coco, annFile=json_file_coco, transform=transform,)
 
     # Créer un sous-ensemble contenant seulement les 10 premières images
-    subset_indices = list(range(100))
+    subset_indices = list(range(subsetSize))
     BDD100Ksubset_dataset = Subset(BDD100K_dataset, subset_indices)
 
     batch_size = 1 # 1 images per batch

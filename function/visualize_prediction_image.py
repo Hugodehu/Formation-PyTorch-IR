@@ -1,7 +1,7 @@
 from matplotlib import patches, pyplot as plt
 import torch
 
-def show_comparison_image_models(listModels, dataloader, targetsOut, ListLablesImage, device):
+def show_comparison_image_models(listModels, dataloader, targetsOut, ListLablesImage, device, threshold=0.5):
     with torch.no_grad():
         count = 0
         for models in listModels:
@@ -10,8 +10,8 @@ def show_comparison_image_models(listModels, dataloader, targetsOut, ListLablesI
                     pred_boxes = output['boxes']
                     scores = output['scores']
                     # Filter out low-confidence boxes
-                    pred_boxes = pred_boxes[scores >= 0.5]
-                    scores = scores[scores >= 0.5]
+                    pred_boxes = pred_boxes[scores >= threshold]
+                    scores = scores[scores >=  threshold]
                     output['boxes'] = pred_boxes
                     output['scores'] = scores
 
@@ -23,12 +23,12 @@ def show_comparison_image_models(listModels, dataloader, targetsOut, ListLablesI
                 while i < len(listModels):
                     listPred.append(listModels[i][count][idx])
                     i += 1
-                visualize_prediction(img, targetsOut[count][idx], listPred, ListLablesImage)
+                visualize_prediction(img, targetsOut[count][idx], listPred, ListLablesImage, len(listModels))
             count += 1
 
 
-def visualize_prediction(image, true_boxes, pred_boxes, ListNameModels):
-    fig, axes = plt.subplots(1, 3, figsize=(20, 10))
+def visualize_prediction(image, true_boxes, pred_boxes, ListNameModels, num_models):
+    fig, axes = plt.subplots(1, num_models, figsize=(20, 10))
     axes = axes.flatten()  # Flatten the axes array for easy iteration
 
     for boxes, ax, model in zip(pred_boxes, axes, ListNameModels):
@@ -36,27 +36,34 @@ def visualize_prediction(image, true_boxes, pred_boxes, ListNameModels):
             
         # Draw true boxes in green
         for i, box in enumerate(true_boxes["boxes"]):
+            height, width = image.shape[1:]
             x1, y1, x2, y2 = box.cpu().numpy()
+            x1, x2 = x1 * width, x2 * width
+            y1, y2 = y1 * height, y2 * height
             rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2, edgecolor='g', facecolor='none')
             ax.add_patch(rect)
             # Add class label
             label = true_boxes["labels"][i].item()
-            ax.text(x1, y1, str(label), verticalalignment='top', color='green', fontsize=12, weight='bold')
+            ax.text(x1, y1, f"{label}", verticalalignment='top', color='green', fontsize=12, weight='bold')
         
         # Draw predicted boxes in red
             
         for i, box in enumerate(boxes["boxes"]):
+            height, width = image.shape[1:]
             x1, y1, x2, y2 = box.cpu().numpy()
+            x1, x2 = x1 * width, x2 * width
+            y1, y2 = y1 * height, y2 * height
             rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2, edgecolor='r', facecolor='none')
             ax.add_patch(rect)
             # Add class label
             label = boxes["labels"][i].item()
-            ax.text(x1, y1, str(label), verticalalignment='top', color='red', fontsize=12, weight='bold')
+            conf = boxes["scores"][i].item()
+            ax.text(x1, y1, f"{label}; {conf:0.000}", verticalalignment='top', color='red', fontsize=12, weight='bold')
         
         # Add model name in the top right corner
         ax.title.set_text(model)
         ax.axis('off')
-    
+    plt.title(f'Green: True boxes, Red: Predicted boxes, {ListNameModels}')
     plt.tight_layout()
     plt.show()
 

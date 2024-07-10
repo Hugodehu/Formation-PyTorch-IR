@@ -2,8 +2,9 @@ from matplotlib import pyplot as plt
 import torch
 from function.calculate_IoU import compute_iou
 from torchmetrics.detection import MeanAveragePrecision
+import copy
 
-def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, threshold=0):
+def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, threshold=0.5):
     """
     Evaluates the performance of a model by calculating precision and recall metrics.
 
@@ -28,7 +29,9 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
     metric = MeanAveragePrecision(class_metrics=True, extended_summary=True)
     with torch.no_grad():
         for outputs, targets in zip(prediction, targetsOut):
-            for idx, (target, output) in enumerate(zip(targets, outputs)):
+            temp_outputs = []
+            temp_outputs = copy.deepcopy(outputs)
+            for idx, (target, output) in enumerate(zip(targets, temp_outputs)):
                 true_positives = 0
                 false_positives = 0
                 false_negatives = 0
@@ -39,9 +42,10 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
                 pred_boxes = pred_boxes[scores >= threshold]
                 labels = output['labels'][scores >= threshold]
                 scores = scores[scores >= threshold]
-                output['boxes'] = pred_boxes
-                output['scores'] = scores
-                output['labels'] = labels
+
+                temp_outputs[idx]['boxes'] = pred_boxes
+                temp_outputs[idx]['scores'] = scores
+                temp_outputs[idx]['labels'] = labels
 
                 num_boxes += len(pred_boxes)
                 Target_num_boxes += len(target_boxes)
@@ -80,14 +84,14 @@ def evaluate_performance_model(prediction, targetsOut, iou_threshold=0.5, thresh
                 # imageNumber += 1
 
             # metric = MeanAveragePrecision()
-            for output in outputs:
+            for temps_output in temp_outputs:
                 labels = output['labels']
                 for idx, label in enumerate(labels):
                     if not isinstance(label.item(), int):
                         # print(f"label de type : {type(label)}, valeurs :{label}")
                         labels[idx] = label.to(torch.int)
-                output['labels'] = labels
-            metric.update(outputs, targets)
+                temps_output['labels'] = labels
+            metric.update(temp_outputs, targets)
             # mAP = metric.compute()
     mAP = metric.compute()  
     # plot_precision_recall_curve(mAP['map_per_class'], mAP['classes'])

@@ -1,15 +1,13 @@
 import torch
 from ensemble_boxes import weighted_boxes_fusion
 
-def merge_predictions_with_extension_wbf(predictionsModel1, predictionsModel2, IoU_threshold=0.5, threshold=0.5):
+def merge_predictions_with_extension_wbf(predictionsList, IoU_threshold=0.5, threshold=0.5):
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    ListListBoxes, ListListScores, ListListLables = regroup_predictions(predictionsModel1, predictionsModel2, threshold)
+    ListListBoxes, ListListScores, ListListLables = regroup_predictions(predictionsList, threshold)
     fusionListList = []
-    clusterListList = []
     
     for boxes, scores, labels in zip(ListListBoxes, ListListScores, ListListLables):
         fusionList = []
-        clusterList = []
 
         for box, score, label in zip(boxes, scores, labels):
             for idx, b in enumerate(box):
@@ -19,71 +17,44 @@ def merge_predictions_with_extension_wbf(predictionsModel1, predictionsModel2, I
             for idx, l in enumerate(label):
                 label[idx] = l.cpu().numpy()
             fusion = {'boxes': [], 'scores': [], 'labels': []}
-            cluster = {'boxes': [], 'scores': [], 'labels': []}
-            fusionboxes = fusion['boxes']
             resboxs, resscores, reslables = weighted_boxes_fusion(box, score, label, weights=None, iou_thr=IoU_threshold, skip_box_thr=0.0, conf_type='avg', allows_overflow=False)            
             fusion['boxes'] = torch.tensor(resboxs, device=device)
             fusion['scores'] = torch.tensor(resscores, device=device)
             fusion['labels'] = torch.tensor(reslables, device=device).to(torch.int)
 
             fusionList.append(fusion)
-            clusterList.append(cluster)
 
         fusionListList.append(fusionList)
-        clusterListList.append(clusterList)
 
     return fusionListList
 
 
-def regroup_predictions(predictionsModel1, predictionsModel2, threshold=0.5):
+def regroup_predictions(predictionsList, threshold=0.5):
     boxes = []
     scores = []
     labels = []
 
-    for predictions1, predictions2 in zip(predictionsModel1, predictionsModel2):
-        boxesImages = []
-        scoresImages = []
-        labelsImages = []
+    num_images = len(predictionsList[0])
+    for i in range(num_images):
+        boxe = []
+        score = []
+        label = []
+        for model_predictions in predictionsList:
+            pred = model_predictions[i]
 
-        for pred1, pred2 in zip(predictions1, predictions2):
+            predscore = pred[0]['scores']
+            idxscore = predscore > threshold
+            pred_boxes = pred[0]['boxes'][idxscore]
+            pred_labels = pred[0]['labels'][idxscore]
+            pred_scores = predscore[idxscore]
 
-            scores1 = pred1['scores']
-            scores2 = pred2['scores']
-            scores1 = scores1 > threshold
-            scores2 = scores2 > threshold
-            pred1boxes = pred1['boxes']
-            pred2boxes = pred2['boxes']
-            pred1scores = pred1['scores']
-            pred2scores = pred2['scores']
-            pred1labels = pred1['labels']
-            pred2labels = pred2['labels']
-            if len(scores1) == 0:
-                pred1boxes = torch.tensor([[0, 0, 0, 0]], dtype=torch.float32)
-                pred1scores = torch.tensor([0], dtype=torch.float32)
-                pred1labels = torch.tensor([0])
-            else:
-                pred1boxes = pred1['boxes'][scores1]
-                pred1scores = pred1['scores'][scores1]
-                pred1labels = pred1['labels'][scores1]
-            if len(scores2) == 0:
-                pred2boxes = torch.tensor([[0, 0, 0, 0]], dtype=torch.float32)
-                pred2scores = torch.tensor([0], dtype=torch.float32)
-                pred2labels = torch.tensor([0])
-            else:
-                pred2boxes = pred2['boxes'][scores2]
-                pred2scores = pred2['scores'][scores2]
-                pred2labels = pred2['labels'][scores2]
-
-            boxe = [pred1boxes, pred2boxes]
-            score = [pred1scores, pred2scores]
-            label = [pred1labels, pred2labels]
+            boxe.append(pred_boxes)
+            score.append(pred_scores)
+            label.append(pred_labels)
             
-            boxesImages.append(boxe)
-            scoresImages.append(score)
-            labelsImages.append(label)
-
-        boxes.append(boxesImages)
-        scores.append(scoresImages)
-        labels.append(labelsImages)
+        boxes.append([boxe])
+        scores.append([score])
+        labels.append([label])
+    
 
     return boxes, scores, labels

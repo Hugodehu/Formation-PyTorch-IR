@@ -1,0 +1,92 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\begin{document}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|c|} 
+\hline
+Model & precision & recall & mAP \\ 
+\hline
+F R-CNN & 0.2664 & 0.9335 & 55.4553 \\ 
+\hline
+RetinaNet & 0.2036 & 0.9801 & 50.2337 \\ 
+\hline
+FCOS & 0.3097 & 0.9575 & 46.7434 \\ 
+\hline
+F R-CNN, RetinaNet Cat & 0.1079 & 0.9609 & 54.9835 \\ 
+\hline
+F R-CNN, RetinaNet NMS & 0.1078 & 0.9606 & 54.9954 \\ 
+\hline
+F R-CNN, RetinaNet Soft NMS & 0.2174 & 0.9902 & 54.9831 \\ 
+\hline
+F R-CNN, RetinaNet WBF & 0.5882 & 0.7962 & 53.3109 \\ 
+\hline
+F RCNN, RetinaNet Extension WBF & 0.1881 & 0.9856 & 55.8966 \\ 
+\hline
+F R-CNN, RNet Filtre Moyenne 1 & 0.1882 & 0.9856 & 55.9224 \\ 
+\hline
+F R-CNN, RNet Filtre Moyenne 2 & 0.1883 & 0.9861 & 56.0299 \\ 
+\hline
+F R-CNN, RNet Filtre Mediane & 0.1888 & 0.9861 & 55.9077 \\ 
+\hline
+F R-CNN, RNet Filtre Percentile & 0.1883 & 0.9857 & 55.9754 \\ 
+\hline
+F R-CNN, FCOS Cat & 0.1830 & 0.9389 & 54.7095 \\ 
+\hline
+F R-CNN, FCOS NMS & 0.1808 & 0.9371 & 54.7471 \\ 
+\hline
+F R-CNN, FCOS Soft NMS & 0.2939 & 0.9844 & 55.5353 \\ 
+\hline
+F R-CNN, FCOS WBF & 0.5733 & 0.8143 & 51.5393 \\ 
+\hline
+F R-CNN, FCOS Extension WBF & 0.2477 & 0.9693 & 51.5305 \\ 
+\hline
+F R-CNN, FCOS Filtre Moyenne 1 & 0.2478 & 0.9693 & 51.5273 \\ 
+\hline
+F R-CNN, FCOS Filtre Moyenne 2 & 0.2482 & 0.9693 & 51.4218 \\ 
+\hline
+F R-CNN, FCOS Filtre Mediane & 0.2477 & 0.9692 & 51.6454 \\ 
+\hline
+F R-CNN, FCOS Filtre Percentile & 0.2470 & 0.9690 & 51.7753 \\ 
+\hline
+RetinaNet, FCOS Cat & 0.1128 & 0.9414 & 47.2972 \\ 
+\hline
+RetinaNet, FCOS NMS & 0.1123 & 0.9366 & 47.4408 \\ 
+\hline
+RetinaNet, FCOS Soft NMS & 0.2373 & 0.9904 & 46.2898 \\ 
+\hline
+RetinaNet, FCOS WBF & 0.7042 & 0.6685 & 43.2589 \\ 
+\hline
+RetinaNet, FCOS Extension WBF & 0.1988 & 0.9827 & 43.8737 \\ 
+\hline
+RetinaNet, FCOS Filtre Moyenne 1 & 0.1988 & 0.9827 & 43.8497 \\ 
+\hline
+RetinaNet, FCOS Filtre Moyenne 2 & 0.1993 & 0.9831 & 44.0868 \\ 
+\hline
+RetinaNet, FCOS Filtre Mediane & 0.1978 & 0.9831 & 44.4836 \\ 
+\hline
+RetinaNet, FCOS Filtre Percentile & 0.1976 & 0.9831 & 45.3195 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Cat & 0.1031 & 0.9574 & 54.7811 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS NMS & 0.1015 & 0.9575 & 54.8077 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Soft NMS & 0.2375 & 0.9938 & 54.4747 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS WBF & 0.7183 & 0.6685 & 44.5159 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Extension WBF & 0.1886 & 0.9879 & 54.0298 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Filtre Moyenne 1 & 0.1887 & 0.9879 & 54.0314 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Filtre Moyenne 2 & 0.1889 & 0.9879 & 54.0513 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Filtre Mediane & 0.1879 & 0.9879 & 54.3335 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Filtre Percentile & 0.1884 & 0.9876 & 54.2620 \\ 
+\hline
+\end{tabular}
+\caption{Evaluation des perfomances avec le filtre stats}
+\label{table:data}
+\end{table}
+\end{document}

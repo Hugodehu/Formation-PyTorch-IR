@@ -1,0 +1,37 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\begin{document}
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c||c|c|c||c|c|c|} 
+\hline
+Model & \multicolumn{3}{|c||}{BDD100K} & \multicolumn{3}{|c|}{COCO} \\ 
+ & precision & recall & mAP  & precision & recall & mAP  \\ [0.5ex] 
+\hline
+F R-CNN & 0.6982 & 0.5432 & 22.8207 & 0.5934 & 0.7907 & 52.8998 \\ 
+\hline
+RetinaNet & 0.9026 & 0.3172 & 17.2830 & 0.8482 & 0.5469 & 39.8350 \\ 
+\hline
+FCOS & 0.8307 & 0.4100 & 16.1693 & 0.7179 & 0.6535 & 41.2791 \\ 
+\hline
+F R-CNN, RetinaNet WBF & 0.8483 & 0.4138 & 20.6369 & 0.7545 & 0.6460 & 49.7903 \\ 
+\hline
+F R-CNN, RetinaNet Filtre Percentile & 0.8841 & 0.3759 & 19.8248 & 0.7992 & 0.6017 & 48.2059 \\ 
+\hline
+F R-CNN, FCOS WBF & 0.8388 & 0.4580 & 20.0853 & 0.7170 & 0.6921 & 45.2107 \\ 
+\hline
+F R-CNN, FCOS Filtre Percentile & 0.8778 & 0.3844 & 18.2468 & 0.7738 & 0.5823 & 40.5647 \\ 
+\hline
+RetinaNet, FCOS WBF & 0.9546 & 0.2631 & 14.9456 & 0.8711 & 0.4294 & 31.6934 \\ 
+\hline
+RetinaNet, FCOS Filtre Percentile & 0.9468 & 0.2530 & 14.7225 & 0.8731 & 0.3989 & 30.2301 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS WBF & 0.9081 & 0.3825 & 19.7971 & 0.8049 & 0.5977 & 45.6442 \\ 
+\hline
+F R-CNN, RetinaNet, FCOS Filtre Percentile & 0.9227 & 0.3343 & 18.7332 & 0.8623 & 0.5403 & 43.4242 \\ 
+\hline
+\end{tabular}
+\caption{Evaluation des perfomances avec le filtre stats}
+\label{table:data}
+\end{table}
+\end{document}
