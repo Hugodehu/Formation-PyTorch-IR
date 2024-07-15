@@ -1,4 +1,6 @@
 import torch
+
+# from function.ensemble_boxes_wbf import weighted_boxes_fusion
 from ensemble_boxes import weighted_boxes_fusion
 
 def merge_predictions_with_extension_wbf(predictionsList, IoU_threshold=0.5, threshold=0.5):

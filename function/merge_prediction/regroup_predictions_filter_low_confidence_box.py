@@ -15,5 +15,11 @@ def RegroupPredictionsFilterLowConfidenceBox(pred1, pred2, threshold=0.5):
     combined_boxes = combined_boxes[high_conf_idx]
     combined_scores = combined_scores[high_conf_idx]
     combined_labels = combined_labels[high_conf_idx] 
+
+    # organize the boxes, scores, and labels in descending order of scores
+    sorted_idx = torch.argsort(combined_scores, descending=True)
+    combined_boxes = combined_boxes[sorted_idx]
+    combined_scores = combined_scores[sorted_idx]
+    combined_labels = combined_labels[sorted_idx]
     
     return combined_boxes, combined_scores, combined_labels

@@ -12,7 +12,7 @@ from function.merge_prediction.merge_predictions_with_stats_filter_wbf import me
 from function.visualize_prediction_image import plot_precision_recall_curve, show_comparison_image_models, visualize_prediction
 from function.init_dataloader import initialiseDataloader
 
-BDD100K_dataloader, Coco_dataloader = initialiseDataloader(isSubset=True, subsetSize=1)
+BDD100K_dataloader, Coco_dataloader = initialiseDataloader(isSubset=True, subsetSize=100)
 
 # récupération du cpu ou gpu pour l'évaluation.
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else"cpu"
@@ -58,7 +58,7 @@ predictionFcos, targetsOutFcos = getPredictionModel(FcosModel, BDD100K_dataloade
 FcosModelBdd100KPrecision, FcosModelBdd100KRecall, FcosModelBdd100KTargetBoxes, FcosModelBdd100KPredBoxs, FcosModelBdd100KMap = evaluate_performance_model(predictionFcos, targetsOutFcos)
 
 
-show_comparison_image_models([predictionFasterRCNN, predictionRetinaNet, predictionFcos], BDD100K_dataloader, targetsOutFasterRCNN, ["FasterRCNNModel", "RetinaNetModel", "FcosModel"], device, threshold=0)
+# show_comparison_image_models([predictionFasterRCNN, predictionRetinaNet, predictionFcos], BDD100K_dataloader, targetsOutFasterRCNN, ["FasterRCNNModel", "RetinaNetModel", "FcosModel"], device, threshold=0)
 
 def evaluate_hyperparameters(predictionsList, IoU_threshold=0.5, methods=['percentile'], reduction_factors=[0.5], percentileFactors=[0.75], factors=[1.0]):
     results = {}
@@ -132,7 +132,7 @@ print("Evaluation FRCNN Rnet extension WBF")
 FRCNNRNetExtensionWBFBDD100K = merge_predictions_with_extension_wbf([predictionFasterRCNN, predictionRetinaNet], threshold=0.001)
 FRCNNRNetBDD100KExtensionWBFPrecision, FRCNNRNetBDD100KExtensionWBFRecall, FRCNNRNetBDD100KExtensionWBFTargetBoxes, FRCNNRNetBDD100KExtensionWBFPredBoxs, FRCNNRNetBDD100KExtensionWBFMap = evaluate_performance_model(FRCNNRNetExtensionWBFBDD100K, targetsOutFasterRCNN)
 
-show_comparison_image_models([merge_predictionsFasterRCNNRetinaNetWithoutNMS, merge_predictionsFasterRCNNRetinaNetWithNMS, FRCNNRNetExtensionWBFBDD100K], BDD100K_dataloader, targetsOutFasterRCNN, ["F-RCNN RNet Without NMS", "F-RCNN RNet NMS", "F-RCNN RNet WBF"], device, threshold=0)
+# show_comparison_image_models([merge_predictionsFasterRCNNRetinaNetWithoutNMS, merge_predictionsFasterRCNNRetinaNetWithNMS, FRCNNRNetExtensionWBFBDD100K], BDD100K_dataloader, targetsOutFasterRCNN, ["F-RCNN RNet Without NMS", "F-RCNN RNet NMS", "F-RCNN RNet WBF"], device, threshold=0)
 
 print("Evaluation FRCNN Rnet moyenne 1")
 FRCNNRNetMoyenne1BDD100K = merge_predictions_with_stats_filter_wbf([predictionFasterRCNN, predictionRetinaNet], method='mean_std', factor=1.0)
@@ -418,24 +418,24 @@ FRCNNRNetFcosPercentile = merge_predictions_with_stats_filter_wbf([predictionFas
 FRCNNRNetFcosPercentilePrecision, FRCNNRNetFcosPercentileRecall, FRCNNRNetFcosPercentileTargetBoxes, FRCNNRNetFcosPercentilePredBoxs, FRCNNRNetFcosPercentileMap = evaluate_performance_model(FRCNNRNetFcosPercentile, targetsOutFasterRCNN)
 
 
-percentileFactor = [0,0.1,0.15,0.2,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,1.0]
-results = evaluate_hyperparameters([predictionFasterRCNN, predictionRetinaNet, predictionFcos], IoU_threshold=0.5, methods=['percentile'], reduction_factors=[0.5], percentileFactors=percentileFactor)
-plot_results_percentile(results, dataset='COCO')
+# percentileFactor = [0,0.1,0.15,0.2,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,1.0]
+# results = evaluate_hyperparameters([predictionFasterRCNN, predictionRetinaNet, predictionFcos], IoU_threshold=0.5, methods=['percentile'], reduction_factors=[0.5], percentileFactors=percentileFactor)
+# plot_results_percentile(results, dataset='COCO')
 
 
-reduction_factors = [0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0]
-results = evaluate_hyperparameters([predictionFasterRCNN, predictionRetinaNet, predictionFcos], IoU_threshold=0.5, methods=['percentile'], reduction_factors=reduction_factors, percentileFactors=[0.75])
-plot_results_reduction(results, dataset='COCO')
+# reduction_factors = [0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0]
+# results = evaluate_hyperparameters([predictionFasterRCNN, predictionRetinaNet, predictionFcos], IoU_threshold=0.5, methods=['percentile'], reduction_factors=reduction_factors, percentileFactors=[0.75])
+# plot_results_reduction(results, dataset='COCO')
 
-percentileFactor = [0,0.1,0.15,0.2,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,1.0]
-reduction_factors = [0]
-results = evaluate_hyperparameters([predictionFasterRCNN, predictionRetinaNet, predictionFcos], IoU_threshold=0.5, methods=['percentile'], reduction_factors=reduction_factors, percentileFactors=percentileFactor)
-plot_results_percentile(results, dataset='COCO')
+# percentileFactor = [0,0.1,0.15,0.2,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,1.0]
+# reduction_factors = [0]
+# results = evaluate_hyperparameters([predictionFasterRCNN, predictionRetinaNet, predictionFcos], IoU_threshold=0.5, methods=['percentile'], reduction_factors=reduction_factors, percentileFactors=percentileFactor)
+# plot_results_percentile(results, dataset='COCO')
 
 
 print("fini")
-# # Ecrire dans un fichier tex les informations sous forme de tableau
-# with open("Resultats/performance_model_mAPTest.tex", "w") as f:
+# Ecrire dans un fichier tex les informations sous forme de tableau
+# with open("Resultats/performance_model_mAPTest123.tex", "w") as f:
 #     f.write("\\documentclass{article}\n")
 #     f.write("\\usepackage{graphicx} % Required for inserting images\n")
 #     f.write("\\begin{document}\n")
@@ -585,74 +585,7 @@ print("fini")
 
 # Affichage stats bdd100k et COCO
 
-with open("Resultats/performance_model_mAPStatsTest.tex", "w") as f:
-    f.write("\\documentclass{article}\n")
-    f.write("\\usepackage{graphicx} % Required for inserting images\n")
-    f.write("\\begin{document}\n")
-    f.write("\\begin{table}[h!]\n")
-    f.write("\\centering\n")
-    f.write("\\begin{tabular}{|c||c|c|c||c|c|c|} \n")
-    f.write("\\hline\n")
-    f.write("Model & \\multicolumn{3}{|c||}{BDD100K} & \\multicolumn{3}{|c|}{COCO} \\\\ \n")
-    f.write(" & precision & recall & mAP  & precision & recall & mAP  \\\\ [0.5ex] \n")
-    f.write("\\hline\n")
-    f.write("F R-CNN & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNModelBdd100KPrecision, FasterRCNNModelBdd100KRecall, FasterRCNNModelBdd100KMap, FasterRCNNModelCocoPrecision, FasterRCNNModelCocoRecall, FasterRCNNModelCocoMap))
-    f.write("\\hline\n")
-    f.write("RetinaNet & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RetinaNetModelBdd100KPrecision, RetinaNetModelBdd100KRecall, RetinaNetModelBdd100KMap, RetinaNetModelCocoPrecision, RetinaNetModelCocoRecall, RetinaNetModelCocoMap))
-    f.write("\\hline\n")
-    f.write("FCOS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FcosModelBdd100KPrecision, FcosModelBdd100KRecall, FcosModelBdd100KMap, FcosModelCocoPrecision, FcosModelCocoRecall, FcosModelCocoMap))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KExtensionWBFPrecision, FRCNNRNetBDD100KExtensionWBFRecall, FRCNNRNetBDD100KExtensionWBFMap, FRCNNRNetExtensionWBFPrecision, FRCNNRNetExtensionWBFRecall, FRCNNRNetExtensionWBFMap))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet Filtre Moyenne 1 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KMoyenne1Precision, FRCNNRNetBDD100KMoyenne1Recall, FRCNNRNetBDD100KMoyenne1Map, FRCNNRNetMoyenne1Precision, FRCNNRNetMoyenne1Recall, FRCNNRNetMoyenne1Map))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet Filtre Moyenne 2 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KMoyenne2Precision, FRCNNRNetBDD100KMoyenne2Recall, FRCNNRNetBDD100KMoyenne2Map, FRCNNRNetMoyenne2Precision, FRCNNRNetMoyenne2Recall, FRCNNRNetMoyenne2Map))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet Filtre Mediane & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KMedianePrecision, FRCNNRNetBDD100KMedianeRecall, FRCNNRNetBDD100KMedianeMap, FRCNNRNetMedianePrecision, FRCNNRNetMedianeRecall, FRCNNRNetMedianeMap))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KPercentilePrecision, FRCNNRNetBDD100KPercentileRecall, FRCNNRNetBDD100KPercentileMap, FRCNNRNetPercentilePrecision, FRCNNRNetPercentileRecall, FRCNNRNetPercentileMap))
-    f.write("\\hline\n")
-    f.write("F R-CNN, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosExtensionWBFBDD100KPrecision, FFcosExtensionWBFBDD100KRecall, FFcosExtensionWBFBDD100KMap, FFcosExtensionWBFPrecision, FFcosExtensionWBFRecall, FFcosExtensionWBFMap))
-    f.write("\\hline\n")
-    f.write("F R-CNN, FCOS Filtre Moyenne 1 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosMoyenne1BDD100KPrecision, FFcosMoyenne1BDD100KRecall, FFcosMoyenne1BDD100KMap, FFcosMoyenne1BDD100KPrecision, FFcosMoyenne1Recall, FFcosMoyenne1Map))
-    f.write("\\hline\n")
-    f.write("F R-CNN, FCOS Filtre Moyenne 2 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosMoyenne2BDD100KPrecision, FFcosMoyenne2BDD100KRecall, FFcosMoyenne2BDD100KMap, FFcosMoyenne2Precision, FFcosMoyenne2Recall, FFcosMoyenne2Map))
-    f.write("\\hline\n")
-    f.write("F R-CNN, FCOS Filtre Mediane & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosMedianeBDD100KPrecision, FFcosMedianeBDD100KRecall, FFcosMedianeBDD100KMap, FFcosMedianePrecision, FFcosMedianeRecall, FFcosMedianeMap))
-    f.write("\\hline\n")
-    f.write("F R-CNN, FCOS Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosPercentileBDD100KPrecision, FFcosPercentileBDD100KRecall, FFcosPercentileBDD100KMap, FFcosPercentilePrecision, FFcosPercentileRecall, FFcosPercentileMap))
-    f.write("\\hline\n")
-    f.write("RetinaNet, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KExtensionWBFPrecision, RNetFcosBDD100KExtensionWBFRecall, RNetFcosBDD100KExtensionWBFMap, RetinaNetFcosExtensionWBFPrecision, RetinaNetFcosExtensionWBFRecall, RetinaNetFcosExtensionWBFMap))
-    f.write("\\hline\n")
-    f.write("RetinaNet, FCOS Filtre Moyenne 1 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KMoyenne1Precision, RNetFcosBDD100KMoyenne1Recall, RNetFcosBDD100KMoyenne1Map, RetinaNetFcosMoyenne1Precision, RetinaNetFcosMoyenne1Recall, RetinaNetFcosMoyenne1Map))
-    f.write("\\hline\n")
-    f.write("RetinaNet, FCOS Filtre Moyenne 2 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KMoyenne2Precision, RNetFcosBDD100KMoyenne2Recall, RNetFcosBDD100KMoyenne2Map, RetinaNetFcosMoyenne2Precision, RetinaNetFcosMoyenne2Recall, RetinaNetFcosMoyenne2Map))
-    f.write("\\hline\n")
-    f.write("RetinaNet, FCOS Filtre Mediane & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KMedianePrecision, RNetFcosBDD100KMedianeRecall, RNetFcosBDD100KMedianeMap, RetinaNetFcosMedianePrecision, RetinaNetFcosMedianeRecall, RetinaNetFcosMedianeMap))
-    f.write("\\hline\n")
-    f.write("RetinaNet, FCOS Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KPercentilePrecision, RNetFcosBDD100KPercentileRecall, RNetFcosBDD100KPercentileMap, RetinaNetFcosPercentilePrecision, RetinaNetFcosPercentileRecall, RetinaNetFcosPercentileMap))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KExtensionWBFPrecision, FRCNNRNetFcosBDD100KExtensionWBFRecall, FRCNNRNetFcosBDD100KExtensionWBFMap, FRCNNRNetFcosExtensionWBFPrecision, FRCNNRNetFcosExtensionWBFRecall, FRCNNRNetFcosExtensionWBFMap))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet, FCOS Filtre Moyenne 1 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KMoyenne1Precision, FRCNNRNetFcosBDD100KMoyenne1Recall, FRCNNRNetFcosBDD100KMoyenne1Map, FRCNNRNetFcosMoyenne1Precision, FRCNNRNetFcosMoyenne1Recall, FRCNNRNetFcosMoyenne1Map))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet, FCOS Filtre Moyenne 2 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KMoyenne2Precision, FRCNNRNetFcosBDD100KMoyenne2Recall, FRCNNRNetFcosBDD100KMoyenne2Map, FRCNNRNetFcosMoyenne2Precision, FRCNNRNetFcosMoyenne2Recall, FRCNNRNetFcosMoyenne2Map))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet, FCOS Filtre Mediane & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KMedianePrecision, FRCNNRNetFcosBDD100KMedianeRecall, FRCNNRNetFcosBDD100KMedianeMap, FRCNNRNetFcosMedianePrecision, FRCNNRNetFcosMedianeRecall, FRCNNRNetFcosMedianeMap))
-    f.write("\\hline\n")
-    f.write("F R-CNN, RetinaNet, FCOS Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KPercentilePrecision, FRCNNRNetFcosBDD100KPercentileRecall, FRCNNRNetFcosBDD100KPercentileMap, FRCNNRNetFcosPercentilePrecision, FRCNNRNetFcosPercentileRecall, FRCNNRNetFcosPercentileMap))
-    f.write("\\hline\n")
-    f.write("\\end{tabular}\n")
-    f.write("\\caption{Evaluation des perfomances avec le filtre stats}\n")
-    f.write("\\label{table:data}\n")
-    f.write("\\end{table}\n")
-    f.write("\\end{document}\n")
-    f.close()
-    pass
-
-# Affichage stats bdd100k et COCO
-
-# with open("Resultats/performance_model_mAP_Percentile.tex", "w") as f:
+# with open("Resultats/performance_model_mAPStatsTest.tex", "w") as f:
 #     f.write("\\documentclass{article}\n")
 #     f.write("\\usepackage{graphicx} % Required for inserting images\n")
 #     f.write("\\begin{document}\n")
@@ -671,17 +604,41 @@ with open("Resultats/performance_model_mAPStatsTest.tex", "w") as f:
 #     f.write("\\hline\n")
 #     f.write("F R-CNN, RetinaNet WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KExtensionWBFPrecision, FRCNNRNetBDD100KExtensionWBFRecall, FRCNNRNetBDD100KExtensionWBFMap, FRCNNRNetExtensionWBFPrecision, FRCNNRNetExtensionWBFRecall, FRCNNRNetExtensionWBFMap))
 #     f.write("\\hline\n")
+#     f.write("F R-CNN, RetinaNet Filtre Moyenne 1 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KMoyenne1Precision, FRCNNRNetBDD100KMoyenne1Recall, FRCNNRNetBDD100KMoyenne1Map, FRCNNRNetMoyenne1Precision, FRCNNRNetMoyenne1Recall, FRCNNRNetMoyenne1Map))
+#     f.write("\\hline\n")
+#     f.write("F R-CNN, RetinaNet Filtre Moyenne 2 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KMoyenne2Precision, FRCNNRNetBDD100KMoyenne2Recall, FRCNNRNetBDD100KMoyenne2Map, FRCNNRNetMoyenne2Precision, FRCNNRNetMoyenne2Recall, FRCNNRNetMoyenne2Map))
+#     f.write("\\hline\n")
+#     f.write("F R-CNN, RetinaNet Filtre Mediane & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KMedianePrecision, FRCNNRNetBDD100KMedianeRecall, FRCNNRNetBDD100KMedianeMap, FRCNNRNetMedianePrecision, FRCNNRNetMedianeRecall, FRCNNRNetMedianeMap))
+#     f.write("\\hline\n")
 #     f.write("F R-CNN, RetinaNet Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KPercentilePrecision, FRCNNRNetBDD100KPercentileRecall, FRCNNRNetBDD100KPercentileMap, FRCNNRNetPercentilePrecision, FRCNNRNetPercentileRecall, FRCNNRNetPercentileMap))
 #     f.write("\\hline\n")
 #     f.write("F R-CNN, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosExtensionWBFBDD100KPrecision, FFcosExtensionWBFBDD100KRecall, FFcosExtensionWBFBDD100KMap, FFcosExtensionWBFPrecision, FFcosExtensionWBFRecall, FFcosExtensionWBFMap))
+#     f.write("\\hline\n")
+#     f.write("F R-CNN, FCOS Filtre Moyenne 1 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosMoyenne1BDD100KPrecision, FFcosMoyenne1BDD100KRecall, FFcosMoyenne1BDD100KMap, FFcosMoyenne1BDD100KPrecision, FFcosMoyenne1Recall, FFcosMoyenne1Map))
+#     f.write("\\hline\n")
+#     f.write("F R-CNN, FCOS Filtre Moyenne 2 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosMoyenne2BDD100KPrecision, FFcosMoyenne2BDD100KRecall, FFcosMoyenne2BDD100KMap, FFcosMoyenne2Precision, FFcosMoyenne2Recall, FFcosMoyenne2Map))
+#     f.write("\\hline\n")
+#     f.write("F R-CNN, FCOS Filtre Mediane & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosMedianeBDD100KPrecision, FFcosMedianeBDD100KRecall, FFcosMedianeBDD100KMap, FFcosMedianePrecision, FFcosMedianeRecall, FFcosMedianeMap))
 #     f.write("\\hline\n")
 #     f.write("F R-CNN, FCOS Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosPercentileBDD100KPrecision, FFcosPercentileBDD100KRecall, FFcosPercentileBDD100KMap, FFcosPercentilePrecision, FFcosPercentileRecall, FFcosPercentileMap))
 #     f.write("\\hline\n")
 #     f.write("RetinaNet, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KExtensionWBFPrecision, RNetFcosBDD100KExtensionWBFRecall, RNetFcosBDD100KExtensionWBFMap, RetinaNetFcosExtensionWBFPrecision, RetinaNetFcosExtensionWBFRecall, RetinaNetFcosExtensionWBFMap))
 #     f.write("\\hline\n")
+#     f.write("RetinaNet, FCOS Filtre Moyenne 1 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KMoyenne1Precision, RNetFcosBDD100KMoyenne1Recall, RNetFcosBDD100KMoyenne1Map, RetinaNetFcosMoyenne1Precision, RetinaNetFcosMoyenne1Recall, RetinaNetFcosMoyenne1Map))
+#     f.write("\\hline\n")
+#     f.write("RetinaNet, FCOS Filtre Moyenne 2 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KMoyenne2Precision, RNetFcosBDD100KMoyenne2Recall, RNetFcosBDD100KMoyenne2Map, RetinaNetFcosMoyenne2Precision, RetinaNetFcosMoyenne2Recall, RetinaNetFcosMoyenne2Map))
+#     f.write("\\hline\n")
+#     f.write("RetinaNet, FCOS Filtre Mediane & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KMedianePrecision, RNetFcosBDD100KMedianeRecall, RNetFcosBDD100KMedianeMap, RetinaNetFcosMedianePrecision, RetinaNetFcosMedianeRecall, RetinaNetFcosMedianeMap))
+#     f.write("\\hline\n")
 #     f.write("RetinaNet, FCOS Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KPercentilePrecision, RNetFcosBDD100KPercentileRecall, RNetFcosBDD100KPercentileMap, RetinaNetFcosPercentilePrecision, RetinaNetFcosPercentileRecall, RetinaNetFcosPercentileMap))
 #     f.write("\\hline\n")
 #     f.write("F R-CNN, RetinaNet, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KExtensionWBFPrecision, FRCNNRNetFcosBDD100KExtensionWBFRecall, FRCNNRNetFcosBDD100KExtensionWBFMap, FRCNNRNetFcosExtensionWBFPrecision, FRCNNRNetFcosExtensionWBFRecall, FRCNNRNetFcosExtensionWBFMap))
+#     f.write("\\hline\n")
+#     f.write("F R-CNN, RetinaNet, FCOS Filtre Moyenne 1 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KMoyenne1Precision, FRCNNRNetFcosBDD100KMoyenne1Recall, FRCNNRNetFcosBDD100KMoyenne1Map, FRCNNRNetFcosMoyenne1Precision, FRCNNRNetFcosMoyenne1Recall, FRCNNRNetFcosMoyenne1Map))
+#     f.write("\\hline\n")
+#     f.write("F R-CNN, RetinaNet, FCOS Filtre Moyenne 2 & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KMoyenne2Precision, FRCNNRNetFcosBDD100KMoyenne2Recall, FRCNNRNetFcosBDD100KMoyenne2Map, FRCNNRNetFcosMoyenne2Precision, FRCNNRNetFcosMoyenne2Recall, FRCNNRNetFcosMoyenne2Map))
+#     f.write("\\hline\n")
+#     f.write("F R-CNN, RetinaNet, FCOS Filtre Mediane & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KMedianePrecision, FRCNNRNetFcosBDD100KMedianeRecall, FRCNNRNetFcosBDD100KMedianeMap, FRCNNRNetFcosMedianePrecision, FRCNNRNetFcosMedianeRecall, FRCNNRNetFcosMedianeMap))
 #     f.write("\\hline\n")
 #     f.write("F R-CNN, RetinaNet, FCOS Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KPercentilePrecision, FRCNNRNetFcosBDD100KPercentileRecall, FRCNNRNetFcosBDD100KPercentileMap, FRCNNRNetFcosPercentilePrecision, FRCNNRNetFcosPercentileRecall, FRCNNRNetFcosPercentileMap))
 #     f.write("\\hline\n")
@@ -692,5 +649,56 @@ with open("Resultats/performance_model_mAPStatsTest.tex", "w") as f:
 #     f.write("\\end{document}\n")
 #     f.close()
 #     pass
+
+# Affichage stats bdd100k et COCO
+
+with open("Resultats/performance_model_mAP_Percentile123.tex", "w") as f:
+    f.write("\\documentclass{article}\n")
+    f.write("\\usepackage{graphicx} % Required for inserting images\n")
+    f.write("\\begin{document}\n")
+    f.write("\\begin{table}[h!]\n")
+    f.write("\\centering\n")
+    f.write("\\begin{tabular}{|c||c|c|c||c|c|c|} \n")
+    f.write("\\hline\n")
+    f.write("Model & \\multicolumn{3}{|c||}{BDD100K} & \\multicolumn{3}{|c|}{COCO} \\\\ \n")
+    f.write(" & precision & recall & mAP  & precision & recall & mAP  \\\\ [0.5ex] \n")
+    f.write("\\hline\n")
+    f.write("F R-CNN & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNModelBdd100KPrecision, FasterRCNNModelBdd100KRecall, FasterRCNNModelBdd100KMap, FasterRCNNModelCocoPrecision, FasterRCNNModelCocoRecall, FasterRCNNModelCocoMap))
+    f.write("\\hline\n")
+    f.write("RetinaNet & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RetinaNetModelBdd100KPrecision, RetinaNetModelBdd100KRecall, RetinaNetModelBdd100KMap, RetinaNetModelCocoPrecision, RetinaNetModelCocoRecall, RetinaNetModelCocoMap))
+    f.write("\\hline\n")
+    f.write("FCOS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FcosModelBdd100KPrecision, FcosModelBdd100KRecall, FcosModelBdd100KMap, FcosModelCocoPrecision, FcosModelCocoRecall, FcosModelCocoMap))
+    f.write("\\hline\n")
+    f.write("F R-CNN, RNet NMS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNRetinaNetModelBdd100KPrecisionNMS, FasterRCNNRetinaNetModelBdd100KRecallNMS, FasterRCNNRetinaNetModelBdd100KMapNMS, FasterRCNNRetinaNetModelCocoPrecisionNMS, FasterRCNNRetinaNetModelCocoRecallNMS, FasterRCNNRetinaNetModelCocoMapNMS))
+    f.write("\\hline\n")
+    f.write("F R-CNN, RNet WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KExtensionWBFPrecision, FRCNNRNetBDD100KExtensionWBFRecall, FRCNNRNetBDD100KExtensionWBFMap, FRCNNRNetExtensionWBFPrecision, FRCNNRNetExtensionWBFRecall, FRCNNRNetExtensionWBFMap))
+    f.write("\\hline\n")
+    f.write("F R-CNN, RNet Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetBDD100KPercentilePrecision, FRCNNRNetBDD100KPercentileRecall, FRCNNRNetBDD100KPercentileMap, FRCNNRNetPercentilePrecision, FRCNNRNetPercentileRecall, FRCNNRNetPercentileMap))
+    f.write("\\hline\n")
+    f.write("F R-CNN, FCOS NMS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNFcosModelBdd100KPrecisionNMS, FasterRCNNFcosModelBdd100KRecallNMS, FasterRCNNFcosModelBdd100KMapNMS, FasterRCNNFcosModelCocoPrecisionNMS, FasterRCNNFcosModelCocoRecallNMS, FasterRCNNFcosModelCocoMapNMS))
+    f.write("\\hline\n")
+    f.write("F R-CNN, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosExtensionWBFBDD100KPrecision, FFcosExtensionWBFBDD100KRecall, FFcosExtensionWBFBDD100KMap, FFcosExtensionWBFPrecision, FFcosExtensionWBFRecall, FFcosExtensionWBFMap))
+    f.write("\\hline\n")
+    f.write("F R-CNN, FCOS Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FFcosPercentileBDD100KPrecision, FFcosPercentileBDD100KRecall, FFcosPercentileBDD100KMap, FFcosPercentilePrecision, FFcosPercentileRecall, FFcosPercentileMap))
+    f.write("\\hline\n")
+    f.write("RNet, FCOS NMS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RetinaNetFcosModelBdd100KPrecisionNMS, RetinaNetFcosModelBdd100KRecallNMS, RetinaNetFcosModelBdd100KMapNMS , RetinaNetFcosModelCocoPrecisionNMS, RetinaNetFcosModelCocoRecallNMS, RetinaNetFcosModelCocoMapNMS))
+    f.write("\\hline\n")
+    f.write("RNet, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KExtensionWBFPrecision, RNetFcosBDD100KExtensionWBFRecall, RNetFcosBDD100KExtensionWBFMap, RetinaNetFcosExtensionWBFPrecision, RetinaNetFcosExtensionWBFRecall, RetinaNetFcosExtensionWBFMap))
+    f.write("\\hline\n")
+    f.write("RNet, FCOS Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(RNetFcosBDD100KPercentilePrecision, RNetFcosBDD100KPercentileRecall, RNetFcosBDD100KPercentileMap, RetinaNetFcosPercentilePrecision, RetinaNetFcosPercentileRecall, RetinaNetFcosPercentileMap))
+    f.write("\\hline\n")
+    f.write("F R-CNN, RetRNetinaNet, FCOS NMS & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FasterRCNNRetinaNetFcosModelBdd100KPrecisionNMS, FasterRCNNRetinaNetFcosModelBdd100KRecallNMS, FasterRCNNRetinaNetFcosModelBdd100KMapNMS, FasterRCNNRetinaNetFcosModelCocoPrecisionNMS, FasterRCNNRetinaNetFcosModelCocoRecallNMS, FasterRCNNRetinaNetFcosModelCocoMapNMS))
+    f.write("\\hline\n")
+    f.write("F R-CNN, RetRNetinaNet, FCOS WBF & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KExtensionWBFPrecision, FRCNNRNetFcosBDD100KExtensionWBFRecall, FRCNNRNetFcosBDD100KExtensionWBFMap, FRCNNRNetFcosExtensionWBFPrecision, FRCNNRNetFcosExtensionWBFRecall, FRCNNRNetFcosExtensionWBFMap))
+    f.write("\\hline\n")
+    f.write("F R-CNN, RNet, FCOS Filtre Percentile & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} & {:.4f} \\\\ \n".format(FRCNNRNetFcosBDD100KPercentilePrecision, FRCNNRNetFcosBDD100KPercentileRecall, FRCNNRNetFcosBDD100KPercentileMap, FRCNNRNetFcosPercentilePrecision, FRCNNRNetFcosPercentileRecall, FRCNNRNetFcosPercentileMap))
+    f.write("\\hline\n")
+    f.write("\\end{tabular}\n")
+    f.write("\\caption{Evaluation des perfomances avec le filtre stats}\n")
+    f.write("\\label{table:data}\n")
+    f.write("\\end{table}\n")
+    f.write("\\end{document}\n")
+    f.close()
+    pass
 
 print("Fin de l'execution")

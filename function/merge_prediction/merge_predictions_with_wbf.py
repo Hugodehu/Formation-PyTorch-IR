@@ -38,6 +38,18 @@ def merge_predictions_with_wbf(predictionsModel1, predictionsModel2, IoU_thresho
                         cluster["boxes"][idfusion].append(predBox.cpu().numpy())
                         cluster["scores"][idfusion].append(predScores[idx].item())
                         cluster["labels"][idfusion].append(predLabels[idx].item())
+
+                        max_score_cluster = max(cluster["scores"][idfusion])
+                        if(max_score_cluster > 0.75):
+                            #get score below 0.15
+                            idxs = torch.argsort(torch.tensor(cluster["scores"][idfusion]), descending=False)
+                            for idx in idxs:
+                                if cluster["scores"][idfusion][idx] < 0.15:
+                                    cluster["scores"][idfusion].pop(idx)
+                                    cluster["boxes"][idfusion].pop(idx)
+                                    cluster["labels"][idfusion].pop(idx)
+                                    break
+                                
                         matched = True
 
                         T = cluster["boxes"][idfusion]
